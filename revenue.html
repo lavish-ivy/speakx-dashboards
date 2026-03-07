@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakX Revenue & Payments Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg-primary: #0b0e17;
+            --bg-card: #141829;
+            --bg-header: linear-gradient(135deg, #00b894 0%, #00cec9 50%, #0984e3 100%);
+            --text-primary: #e8eaf6;
+            --text-secondary: #9ea7c0;
+            --text-on-dark: #ffffff;
+            --accent: #00b894;
+            --accent2: #0984e3;
+            --positive: #00b894;
+            --negative: #d63031;
+            --warning: #fdcb6e;
+            --neutral: #78909c;
+            --border: rgba(255,255,255,0.06);
+            --gap: 16px;
+            --radius: 12px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height:1.5; min-height:100vh; }
+        .dc { max-width:1440px; margin:0 auto; padding:var(--gap); }
+        .hdr { background:var(--bg-header); color:var(--text-on-dark); padding:24px 32px; border-radius:var(--radius); margin-bottom:var(--gap); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+        .hdr h1 { font-size:22px; font-weight:700; letter-spacing:-0.3px; }
+        .hdr .sub { font-size:13px; opacity:0.85; margin-top:2px; }
+        .badge { background:rgba(255,255,255,0.15); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:500; backdrop-filter:blur(10px); }
+        .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:var(--gap); margin-bottom:var(--gap); }
+        .kpi { background:var(--bg-card); border-radius:var(--radius); padding:20px; border:1px solid var(--border); position:relative; overflow:hidden; }
+        .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--bg-header); }
+        .kpi-l { font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; }
+        .kpi-v { font-size:26px; font-weight:700; }
+        .kpi-c { font-size:12px; font-weight:500; margin-top:4px; }
+        .kpi-c.pos { color:var(--positive); }
+        .kpi-c.neg { color:var(--negative); }
+        .kpi-c.neu { color:var(--neutral); }
+        .sec { font-size:16px; font-weight:600; margin:24px 0 12px; padding-left:4px; display:flex; align-items:center; gap:8px; }
+        .sec .dot { width:8px; height:8px; border-radius:50%; }
+        .cr { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:var(--gap); margin-bottom:var(--gap); }
+        .cc { background:var(--bg-card); border-radius:var(--radius); padding:20px 24px; border:1px solid var(--border); }
+        .cc h3 { font-size:14px; font-weight:600; margin-bottom:4px; }
+        .cc .cs { font-size:11px; color:var(--text-secondary); margin-bottom:16px; }
+        .cc canvas { max-height:280px; }
+        .cf { grid-column:1/-1; }
+        .ts { background:var(--bg-card); border-radius:var(--radius); padding:20px 24px; border:1px solid var(--border); overflow-x:auto; margin-bottom:var(--gap); }
+        .ts h3 { font-size:14px; font-weight:600; margin-bottom:16px; }
+        .dt { width:100%; border-collapse:collapse; font-size:13px; }
+        .dt thead th { text-align:left; padding:10px 12px; border-bottom:2px solid rgba(255,255,255,0.1); color:var(--text-secondary); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+        .dt tbody td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); }
+        .dt tbody tr:hover { background:rgba(0,184,148,0.05); }
+        .ib { display:inline-block; background:rgba(0,184,148,0.15); color:var(--accent); font-size:11px; padding:3px 10px; border-radius:12px; margin-top:8px; font-weight:500; }
+        .ft { text-align:center; padding:16px; color:var(--text-secondary); font-size:12px; }
+        @media(max-width:768px) { .hdr{flex-direction:column;align-items:flex-start;} .kpi-row{grid-template-columns:repeat(2,1fr);} .cr{grid-template-columns:1fr;} }
+    </style>
+</head>
+<body>
+<div class="dc">
+    <header class="hdr">
+        <div>
+            <h1>💰 SpeakX Revenue & Payments Dashboard</h1>
+            <div class="sub">Daily revenue, payment methods, provider performance & weekly trends</div>
+        </div>
+        <span class="badge">Data as of: Mar 5, 2026</span>
+    </header>
+
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="sec"><div class="dot" style="background:#00b894"></div> Daily Revenue Trend (Last 30 Days)</div>
+    <div class="cr">
+        <div class="cc cf">
+            <h3>Revenue: Trial vs Monthly</h3>
+            <div class="cs">Stacked area — trial (green) vs monthly subscriptions (blue)</div>
+            <canvas id="chart-daily-rev" style="max-height:320px"></canvas>
+        </div>
+    </div>
+
+    <div class="sec"><div class="dot" style="background:#0984e3"></div> Weekly Revenue & ARPU (12 Weeks)</div>
+    <div class="cr">
+        <div class="cc">
+            <h3>Weekly Revenue Trend</h3>
+            <div class="cs">Total weekly revenue with trial/monthly split</div>
+            <canvas id="chart-weekly-rev"></canvas>
+        </div>
+        <div class="cc">
+            <h3>ARPU & Unique Payers</h3>
+            <div class="cs">Average revenue per user and payer count by week</div>
+            <canvas id="chart-arpu"></canvas>
+        </div>
+    </div>
+
+    <div class="sec"><div class="dot" style="background:#fdcb6e"></div> Payment Mix</div>
+    <div class="cr">
+        <div class="cc">
+            <h3>Revenue by Payment Method</h3>
+            <div class="cs">Last 30 days — grouped UPI variants</div>
+            <canvas id="chart-method"></canvas>
+        </div>
+        <div class="cc">
+            <h3>Revenue by Checkout Channel & Plan</h3>
+            <div class="cs">CRON (auto-renew), SCRIPT, APP, etc.</div>
+            <canvas id="chart-channel"></canvas>
+        </div>
+    </div>
+
+    <div class="sec"><div class="dot" style="background:#d63031"></div> Payment Health</div>
+    <div class="cr">
+        <div class="cc cf">
+            <h3>Payment Success Rate & Volume</h3>
+            <div class="cs">Daily success rate (line) vs attempt volume (bars)</div>
+            <canvas id="chart-success" style="max-height:300px"></canvas>
+        </div>
+    </div>
+
+    <div class="ts">
+        <h3>Payment Provider Scorecard (Last 30 Days)</h3>
+        <table class="dt" id="tbl-providers"></table>
+    </div>
+
+    <div class="ts">
+        <h3>Daily Revenue Detail</h3>
+        <table class="dt" id="tbl-daily"></table>
+    </div>
+
+    <footer class="ft">SpeakX Analytics · Revenue & Payments · Generated by Claude · prod-gcp-db via Redash</footer>
+</div>
+
+<script>
+// ============= EMBEDDED DATA =============
+const DAILY_REV = [
+    {d:"Feb 3",trial:68236,monthly:1603992,total:1672228,tTxn:2474,mTxn:6458,txn:8932},
+    {d:"Feb 4",trial:72610,monthly:1303713,total:1376323,tTxn:2620,mTxn:5287,txn:7907},
+    {d:"Feb 5",trial:70005,monthly:1445798,total:1515803,tTxn:2535,mTxn:5952,txn:8487},
+    {d:"Feb 6",trial:66424,monthly:1475742,total:1542166,tTxn:2396,mTxn:6108,txn:8504},
+    {d:"Feb 7",trial:65674,monthly:1612731,total:1678405,tTxn:2376,mTxn:6619,txn:8995},
+    {d:"Feb 8",trial:71315,monthly:1472396,total:1543711,tTxn:2585,mTxn:6154,txn:8739},
+    {d:"Feb 9",trial:64534,monthly:1550126,total:1614660,tTxn:2336,mTxn:6424,txn:8760},
+    {d:"Feb 10",trial:68434,monthly:1477121,total:1545555,tTxn:2476,mTxn:6229,txn:8705},
+    {d:"Feb 11",trial:67914,monthly:1457323,total:1525237,tTxn:2456,mTxn:6177,txn:8633},
+    {d:"Feb 12",trial:69137,monthly:1416996,total:1486133,tTxn:2503,mTxn:6104,txn:8607},
+    {d:"Feb 13",trial:62385,monthly:1308492,total:1370877,tTxn:2255,mTxn:5658,txn:7913},
+    {d:"Feb 14",trial:61277,monthly:1294856,total:1356133,tTxn:2213,mTxn:5544,txn:7757},
+    {d:"Feb 15",trial:55741,monthly:1391550,total:1447291,tTxn:2009,mTxn:5850,txn:7859},
+    {d:"Feb 16",trial:57494,monthly:1243752,total:1301246,tTxn:2086,mTxn:5298,txn:7384},
+    {d:"Feb 17",trial:67043,monthly:1311801,total:1378844,tTxn:2428,mTxn:5599,txn:8027},
+    {d:"Feb 18",trial:62745,monthly:1093473,total:1156218,tTxn:2272,mTxn:4777,txn:7049},
+    {d:"Feb 19",trial:66727,monthly:1296685,total:1363412,tTxn:2413,mTxn:5515,txn:7928},
+    {d:"Feb 20",trial:68815,monthly:1162377,total:1231192,tTxn:2495,mTxn:4973,txn:7468},
+    {d:"Feb 21",trial:85971,monthly:1229644,total:1315615,tTxn:3099,mTxn:5256,txn:8355},
+    {d:"Feb 22",trial:77812,monthly:1154446,total:1232258,tTxn:2818,mTxn:5004,txn:7822},
+    {d:"Feb 23",trial:80253,monthly:1211115,total:1291368,tTxn:2867,mTxn:5135,txn:8002},
+    {d:"Feb 24",trial:71394,monthly:1216267,total:1287661,tTxn:2406,mTxn:5283,txn:7689},
+    {d:"Feb 25",trial:63433,monthly:1170547,total:1233980,tTxn:2107,mTxn:5003,txn:7110},
+    {d:"Feb 26",trial:53379,monthly:1243470,total:1296849,tTxn:1771,mTxn:5330,txn:7101},
+    {d:"Feb 27",trial:57346,monthly:1289506,total:1346852,tTxn:1935,mTxn:5544,txn:7479},
+    {d:"Feb 28",trial:52523,monthly:1455243,total:1507766,tTxn:1851,mTxn:6257,txn:8108},
+    {d:"Mar 1",trial:54946,monthly:1367834,total:1422780,tTxn:1984,mTxn:5716,txn:7700},
+    {d:"Mar 2",trial:45788,monthly:1585816,total:1631604,tTxn:1652,mTxn:6484,txn:8136},
+    {d:"Mar 3",trial:56393,monthly:1673980,total:1730373,tTxn:2037,mTxn:6470,txn:8507},
+    {d:"Mar 4",trial:52991,monthly:1807573,total:1860564,tTxn:1921,mTxn:6977,txn:8898}
+];
+
+const WEEKLY_REV = [
+    {w:"Dec 8",trial:136715,monthly:6903527,total:7040242,payers:37038,arpu:190.08},
+    {w:"Dec 15",trial:303506,monthly:9776430,total:10079936,payers:60107,arpu:167.70},
+    {w:"Dec 22",trial:384427,monthly:9699691,total:10084118,payers:57971,arpu:173.95},
+    {w:"Dec 29",trial:397537,monthly:11689544,total:12087081,payers:66314,arpu:182.27},
+    {w:"Jan 5",trial:438287,monthly:11356773,total:11795060,payers:65453,arpu:180.21},
+    {w:"Jan 12",trial:374300,monthly:10170121,total:10544421,payers:57260,arpu:184.15},
+    {w:"Jan 19",trial:388404,monthly:9052079,total:9440483,payers:53137,arpu:177.66},
+    {w:"Jan 26",trial:432113,monthly:10312286,total:10744399,payers:57433,arpu:187.08},
+    {w:"Feb 2",trial:482158,monthly:10525343,total:11007501,payers:60312,arpu:182.51},
+    {w:"Feb 9",trial:449422,monthly:9896464,total:10345886,payers:58101,arpu:178.07},
+    {w:"Feb 16",trial:486607,monthly:8492178,total:8978785,payers:53908,arpu:166.56},
+    {w:"Feb 23",trial:433274,monthly:8953982,total:9387256,payers:53082,arpu:176.84}
+];
+
+const PAY_METHODS = [
+    {method:"UPI (All)",revenue:23643257,txns:133393,avg:177.24},
+    {method:"ACCOUNT",revenue:19794858,txns:107432,avg:184.25},
+    {method:"EXTERNAL_VPA",revenue:3465619,txns:13391,avg:258.80},
+    {method:"App Store",revenue:73453,txns:275,avg:267.10},
+    {method:"Cards (CC+DC)",revenue:4947,txns:25,avg:197.88},
+    {method:"Google Play",revenue:4115,txns:71,avg:57.96},
+    {method:"Net Banking",revenue:995,txns:5,avg:199.00}
+];
+
+const CHANNELS = [
+    {ch:"CRON · Monthly",rev:35209792,txns:145208},
+    {ch:"SCRIPT · Monthly",rev:4949087,txns:19913},
+    {ch:"APP · Trial/Other",rev:2677365,txns:77415},
+    {ch:"CRON · Annual",rev:372812,txns:188},
+    {ch:"WEBHOOK · Monthly",rev:83438,txns:336},
+    {ch:"CANCEL OFFER · Monthly",rev:67815,txns:685},
+    {ch:"APP · Monthly",rev:57792,txns:308},
+    {ch:"SCRIPT · Annual",rev:57971,txns:29},
+    {ch:"APP · Quarterly",rev:47541,txns:159}
+];
+
+const SUCCESS_RATE = [
+    {d:"Feb 3",attempts:24715,success:8932,fail:12898,refund:0,rate:36.14},
+    {d:"Feb 4",attempts:21549,success:7907,fail:10640,refund:0,rate:36.69},
+    {d:"Feb 5",attempts:21860,success:8487,fail:10445,refund:0,rate:38.82},
+    {d:"Feb 6",attempts:21373,success:8504,fail:10190,refund:0,rate:39.79},
+    {d:"Feb 7",attempts:22046,success:8995,fail:10551,refund:0,rate:40.80},
+    {d:"Feb 8",attempts:22135,success:8739,fail:10670,refund:0,rate:39.48},
+    {d:"Feb 9",attempts:23507,success:8760,fail:12327,refund:0,rate:37.27},
+    {d:"Feb 10",attempts:21649,success:8705,fail:10245,refund:0,rate:40.21},
+    {d:"Feb 11",attempts:21173,success:8633,fail:9840,refund:0,rate:40.77},
+    {d:"Feb 12",attempts:21800,success:8607,fail:10443,refund:0,rate:39.48},
+    {d:"Feb 13",attempts:19628,success:7913,fail:9423,refund:0,rate:40.31},
+    {d:"Feb 14",attempts:20653,success:7757,fail:10668,refund:0,rate:37.56},
+    {d:"Feb 15",attempts:18842,success:7859,fail:8694,refund:0,rate:41.71},
+    {d:"Feb 16",attempts:18589,success:7384,fail:8912,refund:0,rate:39.72},
+    {d:"Feb 17",attempts:20228,success:8027,fail:9660,refund:0,rate:39.68},
+    {d:"Feb 18",attempts:19778,success:7049,fail:10066,refund:0,rate:35.64},
+    {d:"Feb 19",attempts:21995,success:7928,fail:11482,refund:0,rate:36.04},
+    {d:"Feb 20",attempts:19972,success:7468,fail:9729,refund:0,rate:37.39},
+    {d:"Feb 21",attempts:22115,success:8355,fail:10557,refund:0,rate:37.78},
+    {d:"Feb 22",attempts:21168,success:7822,fail:10242,refund:0,rate:36.95},
+    {d:"Feb 23",attempts:23015,success:8002,fail:11736,refund:0,rate:34.77},
+    {d:"Feb 24",attempts:22949,success:7689,fail:12709,refund:0,rate:33.50},
+    {d:"Feb 25",attempts:19697,success:7110,fail:10490,refund:0,rate:36.10},
+    {d:"Feb 26",attempts:18562,success:7101,fail:9616,refund:0,rate:38.26},
+    {d:"Feb 27",attempts:20142,success:7479,fail:10754,refund:0,rate:37.13},
+    {d:"Feb 28",attempts:20246,success:8108,fail:10352,refund:0,rate:40.05},
+    {d:"Mar 1",attempts:20628,success:7700,fail:11104,refund:0,rate:37.33},
+    {d:"Mar 2",attempts:18938,success:8136,fail:9067,refund:0,rate:42.96},
+    {d:"Mar 3",attempts:20503,success:8507,fail:9584,refund:0,rate:41.49},
+    {d:"Mar 4",attempts:21958,success:8898,fail:10867,refund:0,rate:40.52}
+];
+
+const PROVIDERS = [
+    {name:"PhonePe",attempts:254311,successes:120823,rate:47.51,rev:23260477},
+    {name:"Paytm",attempts:278075,successes:87075,rate:31.31,rev:15994675},
+    {name:"Razorpay S2S",attempts:93242,successes:32649,rate:35.02,rev:3983171},
+    {name:"Juspay",attempts:10542,successes:3271,rate:31.03,rev:197399},
+    {name:"App Store IAP",attempts:363,successes:275,rate:75.76,rev:73453},
+    {name:"Razorpay",attempts:40,successes:37,rate:92.50,rev:8363},
+    {name:"Google Play IAP",attempts:793,successes:71,rate:8.95,rev:4115},
+    {name:"Stripe",attempts:1466,successes:40,rate:2.73,rev:1960}
+];
+
+// ============= HELPERS =============
+const fmt = v => { if(v>=1e7) return '₹'+(v/1e7).toFixed(2)+'Cr'; if(v>=1e5) return '₹'+(v/1e5).toFixed(1)+'L'; if(v>=1e3) return '₹'+(v/1e3).toFixed(1)+'K'; return '₹'+v.toFixed(0); };
+const fmtN = v => { if(v>=1e5) return (v/1e3).toFixed(1)+'K'; return v.toLocaleString(); };
+const COLORS = ['#00b894','#0984e3','#fdcb6e','#e17055','#6c5ce7','#00cec9','#d63031','#a29bfe'];
+const chartOpts = (yLabel, cb) => ({
+    responsive:true, maintainAspectRatio:false, animation:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:12,color:'#9ea7c0',font:{size:11}}}},
+    scales:{
+        x:{grid:{display:false},ticks:{color:'#9ea7c0',font:{size:10},maxRotation:45}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9ea7c0',callback:cb||function(v){return fmt(v);}},title:{display:!!yLabel,text:yLabel||'',color:'#9ea7c0'}}
+    }
+});
+
+// ============= DASHBOARD =============
+class Dashboard {
+    constructor() { this.charts={}; this.init(); }
+    init() { this.renderKPIs(); this.renderDailyRev(); this.renderWeeklyRev(); this.renderARPU(); this.renderMethods(); this.renderChannels(); this.renderSuccess(); this.renderProviderTable(); this.renderDailyTable(); }
+
+    renderKPIs() {
+        const last7 = DAILY_REV.slice(-8,-1); // last 7 full days
+        const prev7 = DAILY_REV.slice(-15,-8);
+        const sum = (arr,k) => arr.reduce((s,r)=>s+r[k],0);
+        const l7Total = sum(last7,'total'), p7Total = sum(prev7,'total');
+        const l7Trial = sum(last7,'trial'), p7Trial = sum(prev7,'trial');
+        const l7Monthly = sum(last7,'monthly'), p7Monthly = sum(prev7,'monthly');
+        const l7Txn = sum(last7,'txn'), p7Txn = sum(prev7,'txn');
+        const avgSuccess = SUCCESS_RATE.slice(-7).reduce((s,r)=>s+r.rate,0)/7;
+        const prevSuccess = SUCCESS_RATE.slice(-14,-7).reduce((s,r)=>s+r.rate,0)/7;
+        const avgTicket = l7Total/l7Txn;
+        const prevTicket = p7Total/p7Txn;
+
+        const pct = (a,b) => b?((a-b)/b*100).toFixed(1):0;
+        const cls = v => v>=0?'pos':'neg';
+        const sign = v => v>=0?'+':'';
+
+        const kpis = [
+            {label:'7-Day Revenue',value:fmt(l7Total),change:`${sign(pct(l7Total,p7Total))}${pct(l7Total,p7Total)}% WoW`,c:cls(pct(l7Total,p7Total))},
+            {label:'Trial Revenue (7d)',value:fmt(l7Trial),change:`${sign(pct(l7Trial,p7Trial))}${pct(l7Trial,p7Trial)}% WoW`,c:cls(pct(l7Trial,p7Trial))},
+            {label:'Monthly Revenue (7d)',value:fmt(l7Monthly),change:`${sign(pct(l7Monthly,p7Monthly))}${pct(l7Monthly,p7Monthly)}% WoW`,c:cls(pct(l7Monthly,p7Monthly))},
+            {label:'Daily Avg Revenue',value:fmt(l7Total/7),change:`${sign(pct(l7Total/7,p7Total/7))}${pct(l7Total/7,p7Total/7)}% WoW`,c:cls(pct(l7Total/7,p7Total/7))},
+            {label:'Transactions (7d)',value:fmtN(l7Txn),change:`${sign(pct(l7Txn,p7Txn))}${pct(l7Txn,p7Txn)}% WoW`,c:cls(pct(l7Txn,p7Txn))},
+            {label:'Avg Ticket Size',value:'₹'+avgTicket.toFixed(0),change:`${sign(pct(avgTicket,prevTicket))}${pct(avgTicket,prevTicket)}% WoW`,c:cls(pct(avgTicket,prevTicket))},
+            {label:'Success Rate (7d avg)',value:avgSuccess.toFixed(1)+'%',change:`${sign((avgSuccess-prevSuccess).toFixed(1))}${(avgSuccess-prevSuccess).toFixed(1)}pp WoW`,c:cls(avgSuccess-prevSuccess)},
+            {label:'30d Total Revenue',value:fmt(DAILY_REV.reduce((s,r)=>s+r.total,0)),change:DAILY_REV.length+' days',c:'neu'}
+        ];
+        document.getElementById('kpis').innerHTML = kpis.map(k=>`<div class="kpi"><div class="kpi-l">${k.label}</div><div class="kpi-v">${k.value}</div><div class="kpi-c ${k.c}">${k.change}</div></div>`).join('');
+    }
+
+    renderDailyRev() {
+        const d = DAILY_REV.slice(0,-1); // exclude partial today
+        this.charts.dailyRev = new Chart(document.getElementById('chart-daily-rev'),{
+            type:'line',
+            data:{
+                labels:d.map(r=>r.d),
+                datasets:[
+                    {label:'Monthly Subs',data:d.map(r=>r.monthly),borderColor:'#0984e3',backgroundColor:'rgba(9,132,227,0.15)',fill:true,tension:0.3,pointRadius:2,borderWidth:2},
+                    {label:'Trial',data:d.map(r=>r.trial),borderColor:'#00b894',backgroundColor:'rgba(0,184,148,0.15)',fill:true,tension:0.3,pointRadius:2,borderWidth:2}
+                ]
+            },
+            options:{...chartOpts(),plugins:{...chartOpts().plugins,tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}}}
+        });
+    }
+
+    renderWeeklyRev() {
+        this.charts.weeklyRev = new Chart(document.getElementById('chart-weekly-rev'),{
+            type:'bar',
+            data:{
+                labels:WEEKLY_REV.map(r=>r.w),
+                datasets:[
+                    {label:'Monthly',data:WEEKLY_REV.map(r=>r.monthly),backgroundColor:'rgba(9,132,227,0.7)',borderRadius:4,stack:'s'},
+                    {label:'Trial',data:WEEKLY_REV.map(r=>r.trial),backgroundColor:'rgba(0,184,148,0.7)',borderRadius:4,stack:'s'}
+                ]
+            },
+            options:{...chartOpts(),scales:{...chartOpts().scales,x:{...chartOpts().scales.x,stacked:true},y:{...chartOpts().scales.y,stacked:true}}}
+        });
+    }
+
+    renderARPU() {
+        this.charts.arpu = new Chart(document.getElementById('chart-arpu'),{
+            type:'line',
+            data:{
+                labels:WEEKLY_REV.map(r=>r.w),
+                datasets:[
+                    {label:'ARPU (₹)',data:WEEKLY_REV.map(r=>r.arpu),borderColor:'#fdcb6e',backgroundColor:'rgba(253,203,110,0.1)',fill:true,tension:0.3,pointRadius:3,borderWidth:2,yAxisID:'y'},
+                    {label:'Unique Payers',data:WEEKLY_REV.map(r=>r.payers),borderColor:'#6c5ce7',backgroundColor:'rgba(108,92,231,0.1)',fill:false,tension:0.3,pointRadius:3,borderWidth:2,yAxisID:'y1'}
+                ]
+            },
+            options:{
+                responsive:true,maintainAspectRatio:false,animation:false,
+                interaction:{mode:'index',intersect:false},
+                plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:12,color:'#9ea7c0',font:{size:11}}}},
+                scales:{
+                    x:{grid:{display:false},ticks:{color:'#9ea7c0',font:{size:10}}},
+                    y:{position:'left',grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#fdcb6e',callback:v=>'₹'+v},title:{display:true,text:'ARPU',color:'#fdcb6e'}},
+                    y1:{position:'right',grid:{display:false},ticks:{color:'#6c5ce7',callback:v=>fmtN(v)},title:{display:true,text:'Payers',color:'#6c5ce7'}}
+                }
+            }
+        });
+    }
+
+    renderMethods() {
+        this.charts.methods = new Chart(document.getElementById('chart-method'),{
+            type:'bar',
+            data:{
+                labels:PAY_METHODS.map(r=>r.method),
+                datasets:[{label:'Revenue',data:PAY_METHODS.map(r=>r.revenue),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:6}]
+            },
+            options:{...chartOpts(),indexAxis:'y',plugins:{...chartOpts().plugins,legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.parsed.x)}}}}
+        });
+    }
+
+    renderChannels() {
+        const top = CHANNELS.slice(0,7);
+        this.charts.channels = new Chart(document.getElementById('chart-channel'),{
+            type:'bar',
+            data:{
+                labels:top.map(r=>r.ch),
+                datasets:[{label:'Revenue',data:top.map(r=>r.rev),backgroundColor:COLORS.map(c=>c+'CC'),borderRadius:6}]
+            },
+            options:{...chartOpts(),indexAxis:'y',plugins:{...chartOpts().plugins,legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.parsed.x)}}}}
+        });
+    }
+
+    renderSuccess() {
+        const d = SUCCESS_RATE.slice(0,-1);
+        this.charts.success = new Chart(document.getElementById('chart-success'),{
+            type:'bar',
+            data:{
+                labels:d.map(r=>r.d),
+                datasets:[
+                    {type:'bar',label:'Success',data:d.map(r=>r.success),backgroundColor:'rgba(0,184,148,0.6)',borderRadius:3,yAxisID:'y',order:2},
+                    {type:'bar',label:'Failed',data:d.map(r=>r.fail),backgroundColor:'rgba(214,48,49,0.4)',borderRadius:3,yAxisID:'y',order:3},
+                    {type:'line',label:'Success Rate %',data:d.map(r=>r.rate),borderColor:'#fdcb6e',backgroundColor:'transparent',borderWidth:2.5,pointRadius:2,tension:0.3,yAxisID:'y1',order:1}
+                ]
+            },
+            options:{
+                responsive:true,maintainAspectRatio:false,animation:false,
+                interaction:{mode:'index',intersect:false},
+                plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:12,color:'#9ea7c0',font:{size:11}}}},
+                scales:{
+                    x:{stacked:true,grid:{display:false},ticks:{color:'#9ea7c0',font:{size:10},maxRotation:45}},
+                    y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9ea7c0',callback:v=>fmtN(v)},title:{display:true,text:'Transactions',color:'#9ea7c0'}},
+                    y1:{position:'right',min:20,max:50,grid:{display:false},ticks:{color:'#fdcb6e',callback:v=>v+'%'},title:{display:true,text:'Success Rate',color:'#fdcb6e'}}
+                }
+            }
+        });
+    }
+
+    renderProviderTable() {
+        const el = document.getElementById('tbl-providers');
+        let h = '<thead><tr><th>Provider</th><th>Attempts</th><th>Successes</th><th>Success Rate</th><th>Revenue (₹)</th><th>Share</th></tr></thead><tbody>';
+        const totalRev = PROVIDERS.reduce((s,r)=>s+r.rev,0);
+        PROVIDERS.forEach(p => {
+            const share = (p.rev/totalRev*100).toFixed(1);
+            const rateColor = p.rate>=40?'var(--positive)':p.rate>=30?'var(--warning)':'var(--negative)';
+            h += `<tr><td style="font-weight:600">${p.name}</td><td>${fmtN(p.attempts)}</td><td>${fmtN(p.successes)}</td><td><span style="color:${rateColor};font-weight:600">${p.rate}%</span></td><td>${fmt(p.rev)}</td><td>${share}%</td></tr>`;
+        });
+        h += '</tbody>';
+        el.innerHTML = h;
+    }
+
+    renderDailyTable() {
+        const el = document.getElementById('tbl-daily');
+        let h = '<thead><tr><th>Date</th><th>Total Rev</th><th>Monthly Rev</th><th>Trial Rev</th><th>Transactions</th><th>Monthly Txns</th><th>Trial Txns</th></tr></thead><tbody>';
+        DAILY_REV.slice().reverse().forEach(r => {
+            h += `<tr><td style="font-weight:600">${r.d}</td><td>${fmt(r.total)}</td><td>${fmt(r.monthly)}</td><td>${fmt(r.trial)}</td><td>${fmtN(r.txn)}</td><td>${fmtN(r.mTxn)}</td><td>${fmtN(r.tTxn)}</td></tr>`;
+        });
+        h += '</tbody>';
+        el.innerHTML = h;
+    }
+}
+
+new Dashboard();
+</script>
+</body>
+</html>

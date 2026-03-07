@@ -1,0 +1,143 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SpeakX A/B Experiment Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.7/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a1628;color:#e0e0e0}
+.hdr{background:linear-gradient(135deg,#00b4d8,#0077b6,#023e8a);padding:28px 32px;display:flex;justify-content:space-between;align-items:center}
+.hdr h1{font-size:22px;color:#fff}.hdr .sub{color:#caf0f8;font-size:13px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px 24px}
+.kpi{background:linear-gradient(135deg,#0d1b2a,#1b2838);border-radius:12px;padding:18px;border:1px solid #1e3a5f}
+.kpi .lbl{font-size:11px;color:#90e0ef;text-transform:uppercase;letter-spacing:1px}.kpi .val{font-size:26px;font-weight:700;color:#00b4d8;margin:4px 0}
+.kpi .delta{font-size:12px}.up{color:#00f5d4}.dn{color:#ff6b6b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 24px 18px}
+.card{background:#0d1b2a;border-radius:12px;padding:18px;border:1px solid #1e3a5f}
+.card.full{grid-column:1/-1}.card h3{font-size:14px;color:#caf0f8;margin-bottom:12px;border-bottom:1px solid #1e3a5f;padding-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}th{background:#1b2838;color:#90e0ef;padding:8px 10px;text-align:left;font-weight:600}
+td{padding:7px 10px;border-bottom:1px solid #1e3a5f}.winner{color:#00f5d4;font-weight:700}.loser{color:#ff6b6b}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.badge-high{background:#00f5d433;color:#00f5d4}.badge-med{background:#f9c74f33;color:#f9c74f}.badge-low{background:#90909033;color:#909090}
+select{background:#1b2838;color:#e0e0e0;border:1px solid #1e3a5f;padding:6px 12px;border-radius:6px;font-size:13px;margin-bottom:10px}
+.legend-row{display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap}.leg{display:flex;align-items:center;gap:5px;font-size:11px}
+.leg span{width:12px;height:12px;border-radius:3px;display:inline-block}
+</style></head><body>
+<div class="hdr"><div><h1>A/B Experiment Tracker</h1><div class="sub">85 Active Experiments &middot; 14-Day Window &middot; Feb 19 – Mar 5, 2026</div></div><div style="text-align:right"><div style="color:#caf0f8;font-size:12px">SpeakX Analytics</div><div style="color:#90e0ef;font-size:11px">Auto-refreshed from prod DB</div></div></div>
+
+<div class="kpi-row">
+<div class="kpi"><div class="lbl">Total Experiments</div><div class="val">85</div><div class="delta">All 4-arm (CONTROL/A/B/C)</div></div>
+<div class="kpi"><div class="lbl">High Impact (≥0.5% spread)</div><div class="val" style="color:#00f5d4">1</div><div class="delta">Exp #26 — 0.84% CVR spread</div></div>
+<div class="kpi"><div class="lbl">Medium Impact (0.2-0.5%)</div><div class="val" style="color:#f9c74f">9</div><div class="delta">Avg spread: 0.27%</div></div>
+<div class="kpi"><div class="lbl">Low Impact (&lt;0.2%)</div><div class="val" style="color:#909090">75</div><div class="delta">Avg spread: 0.07%</div></div>
+</div>
+
+<div class="grid">
+<div class="card full"><h3>Top 10 Experiments by CVR Spread — Bucket Comparison (14-day)</h3>
+<canvas id="c1" height="70"></canvas></div>
+
+<div class="card"><h3>Experiment #26 — Daily CVR Trend (Highest Impact)</h3>
+<div class="legend-row"><div class="leg"><span style="background:#ff6b6b"></span>A</div><div class="leg"><span style="background:#f9c74f"></span>B</div><div class="leg"><span style="background:#00f5d4"></span>C</div><div class="leg"><span style="background:#90e0ef"></span>CONTROL</div></div>
+<canvas id="c2" height="120"></canvas></div>
+
+<div class="card"><h3>Experiment #4 — Daily CVR Trend</h3>
+<div class="legend-row"><div class="leg"><span style="background:#ff6b6b"></span>A</div><div class="leg"><span style="background:#f9c74f"></span>B</div><div class="leg"><span style="background:#00f5d4"></span>C</div><div class="leg"><span style="background:#90e0ef"></span>CONTROL</div></div>
+<canvas id="c3" height="120"></canvas></div>
+
+<div class="card full"><h3>Experiment #26 — Full Funnel Breakdown by Bucket</h3>
+<canvas id="c4" height="55"></canvas></div>
+
+<div class="card full"><h3>All Top 10 Experiments — Detailed Metrics</h3>
+<table><thead><tr><th>Exp#</th><th>Impact</th><th>Bucket</th><th>Installs</th><th>OB Done</th><th>Login</th><th>Checkout</th><th>Orders</th><th>Payments</th><th>CVR%</th><th>vs CTRL</th></tr></thead>
+<tbody id="tbl"></tbody></table></div>
+</div>
+
+<script>
+const BC={A:'#ff6b6b',B:'#f9c74f',C:'#00f5d4',CONTROL:'#90e0ef'};
+const fN=n=>n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'K':n.toString();
+
+// Q1: Top 10 experiment funnel data
+const expData=[
+{e:26,b:'A',i:110553,fs:108485,ob:79319,lo:56241,ck:55313,or:16826,p:4902,cvr:4.43,sp:0.84},
+{e:26,b:'B',i:110148,fs:108233,ob:78874,lo:56030,ck:55179,or:18150,p:5647,cvr:5.13,sp:0.84},
+{e:26,b:'C',i:110413,fs:108436,ob:79074,lo:56101,ck:55187,or:17980,p:5824,cvr:5.27,sp:0.84},
+{e:26,b:'CONTROL',i:110714,fs:108616,ob:79235,lo:56264,ck:55378,or:17924,p:5574,cvr:5.03,sp:0.84},
+{e:4,b:'A',i:110485,fs:108515,ob:79285,lo:56307,ck:55915,or:17711,p:5448,cvr:4.93,sp:0.41},
+{e:4,b:'B',i:110343,fs:108343,ob:79101,lo:55971,ck:55518,or:17626,p:5376,cvr:4.87,sp:0.41},
+{e:4,b:'C',i:110495,fs:108458,ob:79113,lo:56343,ck:55951,or:17926,p:5337,cvr:4.83,sp:0.41},
+{e:4,b:'CONTROL',i:110505,fs:108454,ob:79003,lo:56015,ck:53673,or:17617,p:5786,cvr:5.24,sp:0.41},
+{e:12,b:'A',i:110047,fs:108028,ob:79026,lo:55980,ck:54558,or:17651,p:5602,cvr:5.09,sp:0.4},
+{e:12,b:'B',i:111007,fs:108954,ob:79300,lo:56450,ck:56038,or:17907,p:5468,cvr:4.93,sp:0.4},
+{e:12,b:'C',i:110281,fs:108351,ob:78925,lo:55855,ck:54489,or:17608,p:5655,cvr:5.13,sp:0.4},
+{e:12,b:'CONTROL',i:110493,fs:108437,ob:79251,lo:56351,ck:55972,or:17714,p:5222,cvr:4.73,sp:0.4},
+{e:13,b:'A',i:110625,fs:108602,ob:79245,lo:56318,ck:55492,or:17789,p:5483,cvr:4.96,sp:0.26},
+{e:13,b:'B',i:110143,fs:108156,ob:78927,lo:56065,ck:55134,or:17580,p:5312,cvr:4.82,sp:0.26},
+{e:13,b:'C',i:110690,fs:108678,ob:79248,lo:56191,ck:55303,or:17698,p:5621,cvr:5.08,sp:0.26},
+{e:13,b:'CONTROL',i:110370,fs:108334,ob:79082,lo:56062,ck:55128,or:17813,p:5531,cvr:5.01,sp:0.26},
+{e:8,b:'A',i:110187,fs:108175,ob:78981,lo:56094,ck:54731,or:17527,p:5500,cvr:4.99,sp:0.25},
+{e:8,b:'B',i:110567,fs:108505,ob:79196,lo:56095,ck:54695,or:17750,p:5650,cvr:5.11,sp:0.25},
+{e:8,b:'C',i:110699,fs:108734,ob:79346,lo:56427,ck:56009,or:17871,p:5437,cvr:4.91,sp:0.25},
+{e:8,b:'CONTROL',i:110375,fs:108356,ob:78979,lo:56020,ck:55622,or:17732,p:5360,cvr:4.86,sp:0.25},
+{e:20,b:'A',i:110891,fs:108844,ob:79495,lo:56561,ck:55670,or:18053,p:5564,cvr:5.02,sp:0.24},
+{e:20,b:'B',i:110161,fs:108155,ob:78801,lo:55884,ck:54998,or:17489,p:5289,cvr:4.8,sp:0.24},
+{e:20,b:'C',i:110489,fs:108523,ob:79358,lo:56338,ck:55389,or:17779,p:5571,cvr:5.04,sp:0.24},
+{e:20,b:'CONTROL',i:110287,fs:108248,ob:78848,lo:55853,ck:55000,or:17559,p:5523,cvr:5.01,sp:0.24},
+{e:14,b:'A',i:110817,fs:108790,ob:79276,lo:56256,ck:55356,or:17730,p:5510,cvr:4.97,sp:0.23},
+{e:14,b:'B',i:110476,fs:108399,ob:79250,lo:56313,ck:55390,or:17587,p:5374,cvr:4.86,sp:0.23},
+{e:14,b:'C',i:110333,fs:108381,ob:79061,lo:56078,ck:55185,or:17764,p:5456,cvr:4.95,sp:0.23},
+{e:14,b:'CONTROL',i:110202,fs:108200,ob:78915,lo:55989,ck:55126,or:17799,p:5607,cvr:5.09,sp:0.23},
+{e:24,b:'A',i:110499,fs:108522,ob:78937,lo:55899,ck:54997,or:17569,p:5408,cvr:4.89,sp:0.22},
+{e:24,b:'B',i:110639,fs:108619,ob:79290,lo:56395,ck:55450,or:17766,p:5459,cvr:4.93,sp:0.22},
+{e:24,b:'C',i:110255,fs:108248,ob:78975,lo:56006,ck:55138,or:17635,p:5436,cvr:4.93,sp:0.22},
+{e:24,b:'CONTROL',i:110435,fs:108381,ob:79300,lo:56336,ck:55472,or:17910,p:5644,cvr:5.11,sp:0.22},
+{e:11,b:'A',i:110282,fs:108326,ob:78924,lo:56045,ck:55167,or:17687,p:5530,cvr:5.01,sp:0.2},
+{e:11,b:'B',i:110187,fs:108159,ob:79027,lo:56148,ck:55263,or:17796,p:5559,cvr:5.05,sp:0.2},
+{e:11,b:'C',i:111011,fs:108974,ob:79367,lo:56169,ck:55253,or:17742,p:5503,cvr:4.96,sp:0.2},
+{e:11,b:'CONTROL',i:110348,fs:108311,ob:79184,lo:56274,ck:55374,or:17655,p:5355,cvr:4.85,sp:0.2},
+{e:25,b:'A',i:110415,fs:108421,ob:79138,lo:56195,ck:55300,or:17762,p:5518,cvr:5.0,sp:0.2},
+{e:25,b:'B',i:110318,fs:108338,ob:79088,lo:56043,ck:55111,or:17626,p:5501,cvr:4.99,sp:0.2},
+{e:25,b:'C',i:110554,fs:108520,ob:79282,lo:56187,ck:55314,or:17773,p:5574,cvr:5.04,sp:0.2},
+{e:25,b:'CONTROL',i:110541,fs:108491,ob:78994,lo:56211,ck:55332,or:17719,p:5354,cvr:4.84,sp:0.2}
+];
+
+// Q2: Daily trend for top 5 (exp 4,8,12,13,26) — inline compact
+const dailyTrend=[{"d":"2026-02-19","e":4,"b":"A","c":5.68},{"d":"2026-02-19","e":4,"b":"B","c":5.3},{"d":"2026-02-19","e":4,"b":"C","c":5.93},{"d":"2026-02-19","e":4,"b":"CONTROL","c":5.84},{"d":"2026-02-20","e":4,"b":"A","c":6.1},{"d":"2026-02-20","e":4,"b":"B","c":5.57},{"d":"2026-02-20","e":4,"b":"C","c":5.68},{"d":"2026-02-20","e":4,"b":"CONTROL","c":6.29},{"d":"2026-02-21","e":4,"b":"A","c":6.25},{"d":"2026-02-21","e":4,"b":"B","c":6.35},{"d":"2026-02-21","e":4,"b":"C","c":6.2},{"d":"2026-02-21","e":4,"b":"CONTROL","c":6.38},{"d":"2026-02-22","e":4,"b":"A","c":5.65},{"d":"2026-02-22","e":4,"b":"B","c":5.51},{"d":"2026-02-22","e":4,"b":"C","c":5.59},{"d":"2026-02-22","e":4,"b":"CONTROL","c":5.62},{"d":"2026-02-23","e":4,"b":"A","c":4.92},{"d":"2026-02-23","e":4,"b":"B","c":4.47},{"d":"2026-02-23","e":4,"b":"C","c":4.34},{"d":"2026-02-23","e":4,"b":"CONTROL","c":4.95},{"d":"2026-02-24","e":4,"b":"A","c":4.21},{"d":"2026-02-24","e":4,"b":"B","c":4.28},{"d":"2026-02-24","e":4,"b":"C","c":4.17},{"d":"2026-02-24","e":4,"b":"CONTROL","c":4.99},{"d":"2026-02-25","e":4,"b":"A","c":4.14},{"d":"2026-02-25","e":4,"b":"B","c":4.89},{"d":"2026-02-25","e":4,"b":"C","c":4.2},{"d":"2026-02-25","e":4,"b":"CONTROL","c":4.89},{"d":"2026-02-26","e":4,"b":"A","c":4.6},{"d":"2026-02-26","e":4,"b":"B","c":4.4},{"d":"2026-02-26","e":4,"b":"C","c":4.04},{"d":"2026-02-26","e":4,"b":"CONTROL","c":4.75},{"d":"2026-02-27","e":4,"b":"A","c":4.14},{"d":"2026-02-27","e":4,"b":"B","c":4.23},{"d":"2026-02-27","e":4,"b":"C","c":3.63},{"d":"2026-02-27","e":4,"b":"CONTROL","c":5.0},{"d":"2026-02-28","e":4,"b":"A","c":4.03},{"d":"2026-02-28","e":4,"b":"B","c":4.2},{"d":"2026-02-28","e":4,"b":"C","c":4.04},{"d":"2026-02-28","e":4,"b":"CONTROL","c":4.65},{"d":"2026-03-01","e":4,"b":"A","c":6.17},{"d":"2026-03-01","e":4,"b":"B","c":6.03},{"d":"2026-03-01","e":4,"b":"C","c":5.92},{"d":"2026-03-01","e":4,"b":"CONTROL","c":5.92},{"d":"2026-03-02","e":4,"b":"A","c":4.38},{"d":"2026-03-02","e":4,"b":"B","c":4.17},{"d":"2026-03-02","e":4,"b":"C","c":4.46},{"d":"2026-03-02","e":4,"b":"CONTROL","c":4.33},{"d":"2026-03-03","e":4,"b":"A","c":4.19},{"d":"2026-03-03","e":4,"b":"B","c":4.28},{"d":"2026-03-03","e":4,"b":"C","c":4.62},{"d":"2026-03-03","e":4,"b":"CONTROL","c":4.68},{"d":"2026-03-04","e":4,"b":"A","c":4.72},{"d":"2026-03-04","e":4,"b":"B","c":4.89},{"d":"2026-03-04","e":4,"b":"C","c":5.03},{"d":"2026-03-04","e":4,"b":"CONTROL","c":5.23},{"d":"2026-03-05","e":4,"b":"A","c":4.82},{"d":"2026-03-05","e":4,"b":"B","c":4.26},{"d":"2026-03-05","e":4,"b":"C","c":4.66},{"d":"2026-03-05","e":4,"b":"CONTROL","c":4.65},
+{"d":"2026-02-19","e":26,"b":"A","c":5.45},{"d":"2026-02-19","e":26,"b":"B","c":6.22},{"d":"2026-02-19","e":26,"b":"C","c":5.52},{"d":"2026-02-19","e":26,"b":"CONTROL","c":5.56},{"d":"2026-02-20","e":26,"b":"A","c":5.3},{"d":"2026-02-20","e":26,"b":"B","c":6.19},{"d":"2026-02-20","e":26,"b":"C","c":6.19},{"d":"2026-02-20","e":26,"b":"CONTROL","c":5.97},{"d":"2026-02-21","e":26,"b":"A","c":6.5},{"d":"2026-02-21","e":26,"b":"B","c":6.08},{"d":"2026-02-21","e":26,"b":"C","c":6.39},{"d":"2026-02-21","e":26,"b":"CONTROL","c":6.21},{"d":"2026-02-22","e":26,"b":"A","c":5.56},{"d":"2026-02-22","e":26,"b":"B","c":5.38},{"d":"2026-02-22","e":26,"b":"C","c":5.83},{"d":"2026-02-22","e":26,"b":"CONTROL","c":5.59},{"d":"2026-02-23","e":26,"b":"A","c":4.42},{"d":"2026-02-23","e":26,"b":"B","c":4.78},{"d":"2026-02-23","e":26,"b":"C","c":4.76},{"d":"2026-02-23","e":26,"b":"CONTROL","c":4.71},{"d":"2026-02-24","e":26,"b":"A","c":2.73},{"d":"2026-02-24","e":26,"b":"B","c":4.85},{"d":"2026-02-24","e":26,"b":"C","c":5.17},{"d":"2026-02-24","e":26,"b":"CONTROL","c":4.91},{"d":"2026-02-25","e":26,"b":"A","c":3.03},{"d":"2026-02-25","e":26,"b":"B","c":4.96},{"d":"2026-02-25","e":26,"b":"C","c":5.08},{"d":"2026-02-25","e":26,"b":"CONTROL","c":5.06},{"d":"2026-02-26","e":26,"b":"A","c":3.17},{"d":"2026-02-26","e":26,"b":"B","c":4.89},{"d":"2026-02-26","e":26,"b":"C","c":5.27},{"d":"2026-02-26","e":26,"b":"CONTROL","c":4.44},{"d":"2026-02-27","e":26,"b":"A","c":2.88},{"d":"2026-02-27","e":26,"b":"B","c":4.82},{"d":"2026-02-27","e":26,"b":"C","c":4.75},{"d":"2026-02-27","e":26,"b":"CONTROL","c":4.57},{"d":"2026-02-28","e":26,"b":"A","c":3.81},{"d":"2026-02-28","e":26,"b":"B","c":4.08},{"d":"2026-02-28","e":26,"b":"C","c":4.79},{"d":"2026-02-28","e":26,"b":"CONTROL","c":4.24},{"d":"2026-03-01","e":26,"b":"A","c":5.7},{"d":"2026-03-01","e":26,"b":"B","c":5.92},{"d":"2026-03-01","e":26,"b":"C","c":6.35},{"d":"2026-03-01","e":26,"b":"CONTROL","c":6.07},{"d":"2026-03-02","e":26,"b":"A","c":4.34},{"d":"2026-03-02","e":26,"b":"B","c":4.4},{"d":"2026-03-02","e":26,"b":"C","c":4.34},{"d":"2026-03-02","e":26,"b":"CONTROL","c":4.25},{"d":"2026-03-03","e":26,"b":"A","c":4.54},{"d":"2026-03-03","e":26,"b":"B","c":4.34},{"d":"2026-03-03","e":26,"b":"C","c":4.68},{"d":"2026-03-03","e":26,"b":"CONTROL","c":4.21},{"d":"2026-03-04","e":26,"b":"A","c":4.81},{"d":"2026-03-04","e":26,"b":"B","c":5.14},{"d":"2026-03-04","e":26,"b":"C","c":4.94},{"d":"2026-03-04","e":26,"b":"CONTROL","c":4.98},{"d":"2026-03-05","e":26,"b":"A","c":4.33},{"d":"2026-03-05","e":26,"b":"B","c":4.84},{"d":"2026-03-05","e":26,"b":"C","c":5.01},{"d":"2026-03-05","e":26,"b":"CONTROL","c":4.22}];
+
+const sd=d=>d.slice(5);
+
+// Chart 1: Grouped bar — CVR per bucket for top 10 experiments
+const expIds=[...new Set(expData.map(r=>r.e))];
+const buckets=['CONTROL','A','B','C'];
+new Chart(document.getElementById('c1'),{type:'bar',data:{
+labels:expIds.map(e=>'Exp #'+e),
+datasets:buckets.map(b=>({label:b,data:expIds.map(e=>{const r=expData.find(x=>x.e===e&&x.b===b);return r?r.cvr:0}),backgroundColor:BC[b]+'cc',borderRadius:4}))
+},options:{responsive:true,plugins:{legend:{labels:{color:'#caf0f8',font:{size:11}}}},scales:{x:{ticks:{color:'#90e0ef'},grid:{display:false}},y:{title:{display:true,text:'CVR %',color:'#90e0ef'},ticks:{color:'#90e0ef'},grid:{color:'#1e3a5f33'},min:4,max:6}}}});
+
+// Chart 2: Exp 26 daily trend
+function trendChart(canvasId,expId){
+const rows=dailyTrend.filter(r=>r.e===expId);
+const dates=[...new Set(rows.map(r=>r.d))];
+new Chart(document.getElementById(canvasId),{type:'line',data:{
+labels:dates.map(sd),
+datasets:buckets.map(b=>({label:b,data:dates.map(d=>{const r=rows.find(x=>x.d===d&&x.b===b);return r?r.c:null}),borderColor:BC[b],backgroundColor:BC[b]+'22',tension:0.3,pointRadius:2,borderWidth:2}))
+},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#90e0ef',font:{size:10}},grid:{display:false}},y:{title:{display:true,text:'CVR %',color:'#90e0ef'},ticks:{color:'#90e0ef'},grid:{color:'#1e3a5f33'}}}}});
+}
+trendChart('c2',26);
+trendChart('c3',4);
+
+// Chart 4: Exp 26 funnel breakdown
+const e26=expData.filter(r=>r.e===26);
+const steps=['Installs','FS Shown','OB Done','Login','Checkout','Orders','Payments'];
+new Chart(document.getElementById('c4'),{type:'bar',data:{
+labels:steps,
+datasets:buckets.map(b=>{const r=e26.find(x=>x.b===b);return{label:b,data:[r.i,r.fs,r.ob,r.lo,r.ck,r.or,r.p],backgroundColor:BC[b]+'aa',borderRadius:3}})
+},options:{responsive:true,plugins:{legend:{labels:{color:'#caf0f8',font:{size:11}}}},scales:{x:{ticks:{color:'#90e0ef'},grid:{display:false}},y:{ticks:{color:'#90e0ef',callback:v=>fN(v)},grid:{color:'#1e3a5f33'}}}}});
+
+// Table
+const tbl=document.getElementById('tbl');
+expData.forEach(r=>{
+const ctrl=expData.find(x=>x.e===r.e&&x.b==='CONTROL');
+const diff=r.b==='CONTROL'?'—':(r.cvr-ctrl.cvr>0?'+':'')+(r.cvr-ctrl.cvr).toFixed(2)+'%';
+const cls=r.b==='CONTROL'?'':(r.cvr>ctrl.cvr?'winner':'loser');
+const badge=r.sp>=0.5?'badge-high':r.sp>=0.2?'badge-med':'badge-low';
+tbl.innerHTML+=`<tr><td>#${r.e}</td><td><span class="badge ${badge}">${r.sp.toFixed(2)}%</span></td><td style="color:${BC[r.b]}">${r.b}</td><td>${fN(r.i)}</td><td>${fN(r.ob)}</td><td>${fN(r.lo)}</td><td>${fN(r.ck)}</td><td>${fN(r.or)}</td><td>${fN(r.p)}</td><td><b>${r.cvr}%</b></td><td class="${cls}">${diff}</td></tr>`;
+});
+</script></body></html>

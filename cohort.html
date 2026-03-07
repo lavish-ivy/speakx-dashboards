@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SpeakX Cohort Deep-Dive</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.7/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a2e;color:#e0e0ff;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#6c5ce7,#a29bfe,#6c5ce7);padding:28px 32px;text-align:center}
+.hdr h1{font-size:26px;font-weight:700;color:#fff;letter-spacing:.5px}
+.hdr p{color:#e0d4ff;font-size:13px;margin-top:4px}
+.wrap{max-width:1340px;margin:0 auto;padding:24px 20px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:linear-gradient(135deg,#1a1a4e,#2d2d6e);border-radius:14px;padding:20px;text-align:center;border:1px solid #3d3d8e}
+.kpi .v{font-size:30px;font-weight:800;background:linear-gradient(135deg,#a29bfe,#6c5ce7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.kpi .l{font-size:11px;color:#9998cc;margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+.kpi .d{font-size:11px;color:#74e0a8;margin-top:2px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.card{background:#12123a;border-radius:14px;padding:20px;border:1px solid #2d2d6e}
+.card h3{font-size:14px;font-weight:600;color:#c8c4ff;margin-bottom:14px}
+.card canvas{width:100%!important;height:260px!important}
+.full{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#1a1a4e;color:#a29bfe;padding:10px 8px;text-align:left;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.5px;position:sticky;top:0}
+td{padding:8px;border-bottom:1px solid #1a1a4e;color:#c8c4ff}
+tr:hover td{background:#1a1a4e}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.b-green{background:#00b89420;color:#00b894}.b-red{background:#ff6b6b20;color:#ff6b6b}
+.tbl-wrap{max-height:440px;overflow-y:auto;border-radius:10px;border:1px solid #2d2d6e}
+.insight{background:linear-gradient(135deg,#1a1a4e,#2d1a4e);border:1px solid #6c5ce740;border-radius:14px;padding:20px;margin-bottom:24px}
+.insight h3{color:#a29bfe;font-size:14px;margin-bottom:10px}
+.insight p{font-size:13px;line-height:1.7;color:#c8c4ff}
+</style>
+</head>
+<body>
+<div class="hdr"><h1>SpeakX Cohort Deep-Dive</h1><p>Trial-to-Monthly Conversion &bull; Green Cohort Analysis &bull; Retention &amp; Engagement</p></div>
+<div class="wrap">
+<!-- KPIs -->
+<div class="kpi-row">
+<div class="kpi"><div class="v">56.3%</div><div class="l">Trial→Monthly CVR</div><div class="d">Jan '26 cohorts</div></div>
+<div class="kpi"><div class="v">66.7%</div><div class="l">Green Cohort CVR</div><div class="d">vs 50.4% Non-Green</div></div>
+<div class="kpi"><div class="v">35.5%</div><div class="l">Green Cohort Share</div><div class="d">Jan '26 avg</div></div>
+<div class="kpi"><div class="v">2.9</div><div class="l">Avg Practice Days</div><div class="d">Trial period (7d)</div></div>
+</div>
+
+<!-- Key Insight -->
+<div class="insight">
+<h3>Key Insight</h3>
+<p>Green cohort users (those who practice 3+ days during trial) convert to monthly at <strong>66.7%</strong> vs <strong>50.4%</strong> for non-green — a <strong>16.3pp gap</strong>. Green share peaked at 37.7% (Jan 5) but has since declined to ~30%. Each 1pp increase in green share lifts blended CVR by ~0.16pp. Prioritizing engagement during the trial window is the highest-leverage retention lever.</p>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="grid">
+<div class="card"><h3>Trial → Monthly Conversion: Green vs Non-Green</h3><canvas id="c1"></canvas></div>
+<div class="card"><h3>Green Cohort Share (% of Trials)</h3><canvas id="c2"></canvas></div>
+</div>
+<!-- Charts Row 2 -->
+<div class="grid">
+<div class="card"><h3>Monthly Subscriber Retention (Feb 2026 Snapshot)</h3><canvas id="c3"></canvas></div>
+<div class="card"><h3>Engagement Decay: First 7 Days After Monthly Payment</h3><canvas id="c4"></canvas></div>
+</div>
+
+<!-- Cohort Table -->
+<div class="card full" style="margin-bottom:24px">
+<h3>Weekly Trial Cohort Performance</h3>
+<div class="tbl-wrap"><table id="tbl"><thead><tr><th>Week</th><th>Trial Users</th><th>Green Users</th><th>Green %</th><th>Avg Practice Days</th><th>Avg D0 Lessons</th><th>Green CVR</th><th>Non-Green CVR</th><th>Gap</th></tr></thead><tbody></tbody></table></div>
+</div>
+</div>
+
+<script>
+const gc=[
+{w:'Dec 1',gT:9013,gC:5555,nT:21213,nC:8775},{w:'Dec 8',gT:6877,gC:4555,nT:14496,nC:6939},
+{w:'Dec 15',gT:7540,gC:5076,nT:15440,nC:7778},{w:'Dec 22',gT:6980,gC:4636,nT:13234,nC:7018},
+{w:'Dec 29',gT:7519,gC:4960,nT:13394,nC:6969},{w:'Jan 5',gT:7920,gC:5218,nT:13096,nC:6931},
+{w:'Jan 12',gT:6009,gC:3950,nT:10191,nC:5184},{w:'Jan 19',gT:6208,gC:4202,nT:10604,nC:5524},
+{w:'Jan 26',gT:5488,gC:3791,nT:10756,nC:5360},{w:'Feb 2',gT:5634,gC:3903,nT:11796,nC:5812},
+{w:'Feb 9',gT:5340,gC:3575,nT:10897,nC:5397},{w:'Feb 16',gT:5778,gC:3776,nT:11814,nC:5503}
+];
+const gt=[
+{w:'Oct 6',t:13286,g:4009,gp:30.2,pd:2.65,dl:6.5},{w:'Oct 13',t:12024,g:3354,gp:27.9,pd:2.53,dl:6.4},
+{w:'Oct 20',t:12954,g:4082,gp:31.5,pd:2.61,dl:6.7},{w:'Oct 27',t:26247,g:7954,gp:30.3,pd:2.59,dl:6.7},
+{w:'Nov 3',t:21963,g:6743,gp:30.7,pd:2.62,dl:6.4},{w:'Nov 10',t:26827,g:7397,gp:27.6,pd:2.50,dl:6.1},
+{w:'Nov 17',t:34101,g:9001,gp:26.4,pd:2.45,dl:6.1},{w:'Nov 24',t:30895,g:8873,gp:28.7,pd:2.52,dl:6.2},
+{w:'Dec 1',t:30226,g:9013,gp:29.8,pd:2.57,dl:6.3},{w:'Dec 8',t:21373,g:6877,gp:32.2,pd:2.72,dl:6.5},
+{w:'Dec 15',t:22980,g:7540,gp:32.8,pd:2.77,dl:6.5},{w:'Dec 22',t:20214,g:6980,gp:34.5,pd:2.81,dl:6.8},
+{w:'Dec 29',t:20913,g:7519,gp:36.0,pd:2.90,dl:6.7},{w:'Jan 5',t:21016,g:7920,gp:37.7,pd:2.95,dl:6.9},
+{w:'Jan 12',t:16200,g:6009,gp:37.1,pd:2.98,dl:6.9},{w:'Jan 19',t:16812,g:6208,gp:36.9,pd:3.00,dl:6.8},
+{w:'Jan 26',t:16244,g:5488,gp:33.8,pd:2.88,dl:6.3},{w:'Feb 2',t:17430,g:5634,gp:32.3,pd:2.83,dl:6.0},
+{w:'Feb 9',t:16237,g:5340,gp:32.9,pd:2.86,dl:6.2},{w:'Feb 16',t:17592,g:5778,gp:32.8,pd:2.88,dl:6.2},
+{w:'Feb 23',t:12926,g:3856,gp:29.8,pd:2.66,dl:6.0}
+];
+const ret=[{l:'M1',u:95246},{l:'M2',u:66849},{l:'M3',u:42457},{l:'M4',u:21322},{l:'M5',u:15117},{l:'M6',u:15865},{l:'M7+',u:52918}];
+const eng={open:[47,38.5,33.6,31.1,28.5,26.7,25.1],les:[28.1,23.2,19.7,17.6,0,0,13.5],wOpen:[71.9,49.3,35.4,27.1]};
+const dx={font:{family:"'Segoe UI',system-ui,sans-serif"}};
+Chart.defaults.color='#9998cc';Chart.defaults.font.family=dx.font.family;
+
+// C1: Green vs Non-Green CVR
+new Chart(document.getElementById('c1'),{type:'line',data:{labels:gc.map(r=>r.w),datasets:[
+{label:'Green CVR %',data:gc.map(r=>+(100*r.gC/r.gT).toFixed(1)),borderColor:'#00b894',backgroundColor:'#00b89420',tension:.3,fill:true,pointRadius:3},
+{label:'Non-Green CVR %',data:gc.map(r=>+(100*r.nC/r.nT).toFixed(1)),borderColor:'#ff6b6b',backgroundColor:'#ff6b6b20',tension:.3,fill:true,pointRadius:3}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12}}},scales:{y:{min:35,max:75,ticks:{callback:v=>v+'%'},grid:{color:'#1a1a4e'}},x:{grid:{display:false}}}}});
+
+// C2: Green Share Trend
+new Chart(document.getElementById('c2'),{type:'line',data:{labels:gt.map(r=>r.w),datasets:[
+{label:'Green %',data:gt.map(r=>r.gp),borderColor:'#6c5ce7',backgroundColor:'#6c5ce720',tension:.3,fill:true,pointRadius:2,borderWidth:2.5},
+{label:'Avg Practice Days',data:gt.map(r=>r.pd),borderColor:'#fdcb6e',borderDash:[5,5],tension:.3,yAxisID:'y2',pointRadius:0,borderWidth:2}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12}}},scales:{y:{min:24,max:40,ticks:{callback:v=>v+'%'},grid:{color:'#1a1a4e'}},y2:{position:'right',min:2.2,max:3.2,ticks:{callback:v=>v+'d'},grid:{display:false}},x:{grid:{display:false},ticks:{maxRotation:45,font:{size:9}}}}}});
+
+// C3: Retention Waterfall
+new Chart(document.getElementById('c3'),{type:'bar',data:{labels:ret.map(r=>r.l),datasets:[{
+label:'Active Users',data:ret.map(r=>r.u),backgroundColor:ret.map((_,i)=>{const c=['#a29bfe','#6c5ce7','#5a4bd1','#4834b5','#362799','#2d1f8a','#1a1466'];return c[i]}),
+borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const pct=(100*ctx.raw/ret[0].u).toFixed(1);return ctx.raw.toLocaleString()+' users ('+pct+'% of M1)'}}}},scales:{y:{ticks:{callback:v=>(v/1000)+'K'},grid:{color:'#1a1a4e'}},x:{grid:{display:false}}}}});
+
+// C4: Engagement Decay
+new Chart(document.getElementById('c4'),{type:'line',data:{labels:['D0','D1','D2','D3','D4','D5','D6'],datasets:[
+{label:'App Open %',data:eng.open,borderColor:'#a29bfe',backgroundColor:'#a29bfe30',tension:.3,fill:true,pointRadius:4,borderWidth:2.5},
+{label:'Lesson Attempt %',data:[28.1,23.2,19.7,17.6,16,14.5,13.5],borderColor:'#00b894',backgroundColor:'#00b89420',tension:.3,fill:true,pointRadius:4,borderWidth:2.5}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12}}},scales:{y:{min:0,max:55,ticks:{callback:v=>v+'%'},grid:{color:'#1a1a4e'}},x:{grid:{display:false}}}}});
+
+// Table
+const gMap=new Map();gc.forEach(r=>{gMap.set(r.w,{gc:+(100*r.gC/r.gT).toFixed(1),nc:+(100*r.nC/r.nT).toFixed(1)})});
+const tb=document.querySelector('#tbl tbody');
+gt.forEach(r=>{const tr=document.createElement('tr');const m=gMap.get(r.w);
+const gCvr=m?m.gc:'-';const nCvr=m?m.nc:'-';const gap=m?(m.gc-m.nc).toFixed(1):'-';
+const gpCls=r.gp>=35?'b-green':'b-red';
+tr.innerHTML=`<td>${r.w}</td><td>${r.t.toLocaleString()}</td><td>${r.g.toLocaleString()}</td>
+<td><span class="badge ${gpCls}">${r.gp}%</span></td><td>${r.pd}</td><td>${r.dl}</td>
+<td style="color:#00b894;font-weight:600">${gCvr}%</td><td style="color:#ff6b6b">${nCvr}%</td>
+<td style="color:#fdcb6e;font-weight:600">${gap!=='-'?'+'+gap+'pp':'-'}</td>`;
+tb.appendChild(tr)});
+</script>
+</body>
+</html>

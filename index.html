@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpeakX Analytics Hub</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0a0a1a;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  /* Animated gradient background */
+  .bg-glow {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 20%, rgba(108,92,231,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 350px at 80% 70%, rgba(0,184,148,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 300px at 50% 50%, rgba(253,203,110,0.06) 0%, transparent 70%);
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 1200px; margin: 0 auto; padding: 48px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center; margin-bottom: 56px;
+  }
+  .header .badge {
+    display: inline-block;
+    background: rgba(108,92,231,0.15); border: 1px solid rgba(108,92,231,0.3);
+    color: #a29bfe; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 6px 16px; border-radius: 20px; margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 44px; font-weight: 800; letter-spacing: -1px;
+    background: linear-gradient(135deg, #ffffff 0%, #a29bfe 50%, #00b894 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 12px;
+  }
+  .header p {
+    font-size: 17px; color: #888; max-width: 520px; margin: 0 auto; line-height: 1.6;
+  }
+
+  /* Dashboard grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+
+  /* Card */
+  .card {
+    position: relative;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 32px 28px 28px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 16px 16px 0 0;
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  .card:hover {
+    border-color: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.07);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+  }
+  .card:hover::before { opacity: 1; }
+
+  /* Card color accents */
+  .card.green::before { background: linear-gradient(90deg, #00b894, #55efc4); }
+  .card.purple::before { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+  .card.orange::before { background: linear-gradient(90deg, #e17055, #fdcb6e); }
+  .card.teal::before { background: linear-gradient(90deg, #00cec9, #81ecec); }
+  .card.indigo::before { background: linear-gradient(90deg, #6c5ce7, #fd79a8); }
+
+  .card .icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 20px;
+  }
+  .card.green .icon { background: rgba(0,184,148,0.15); }
+  .card.purple .icon { background: rgba(108,92,231,0.15); }
+  .card.orange .icon { background: rgba(225,112,85,0.15); }
+  .card.teal .icon { background: rgba(0,206,201,0.15); }
+  .card.indigo .icon { background: rgba(108,92,231,0.15); }
+
+  .card h2 {
+    font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px;
+  }
+  .card .desc {
+    font-size: 14px; color: #888; line-height: 1.6; margin-bottom: 20px;
+  }
+
+  .card .tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .card .tag {
+    font-size: 11px; font-weight: 500; padding: 4px 10px;
+    border-radius: 6px; letter-spacing: 0.3px;
+    background: rgba(255,255,255,0.06); color: #aaa;
+  }
+
+  .card .arrow {
+    position: absolute; top: 28px; right: 24px;
+    font-size: 18px; color: #555; transition: all 0.3s ease;
+  }
+  .card:hover .arrow { color: #fff; transform: translateX(4px); }
+
+  /* Footer */
+  .footer {
+    text-align: center; margin-top: 64px; padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .footer p {
+    font-size: 13px; color: #555;
+  }
+  .footer .pulse {
+    display: inline-block; width: 8px; height: 8px;
+    background: #00b894; border-radius: 50%; margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    .header h1 { font-size: 32px; }
+    .grid { grid-template-columns: 1fr; }
+    .container { padding: 32px 16px 48px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="container">
+
+  <div class="header">
+    <div class="badge">Analytics Hub</div>
+    <h1>SpeakX Dashboards</h1>
+    <p>Real-time business intelligence across revenue, acquisition, marketing, experiments, and cohort health.</p>
+  </div>
+
+  <div class="grid">
+
+    <a href="revenue.html" class="card green">
+      <span class="arrow">&rarr;</span>
+      <div class="icon">&#8377;</div>
+      <h2>Revenue & Payments</h2>
+      <p class="desc">Daily revenue trends, MRR tracking, trial-to-paid conversion, payment success rates, and ARPU analysis.</p>
+      <div class="tags">
+        <span class="tag">MRR</span>
+        <span class="tag">ARPU</span>
+        <span class="tag">Payments</span>
+        <span class="tag">Conversions</span>
+      </div>
+    </a>
+
+    <a href="d0-funnel.html" class="card purple">
+      <span class="arrow">&rarr;</span>
+      <div class="icon">&#9660;</div>
+      <h2>D0 Conversion Funnel</h2>
+      <p class="desc">Day-zero funnel from install to trial, step-by-step drop-off rates, channel-wise conversion, and green cohort splits.</p>
+      <div class="tags">
+        <span class="tag">Funnel</span>
+        <span class="tag">Drop-off</span>
+        <span class="tag">D0 CVR</span>
+        <span class="tag">Green Cohort</span>
+      </div>
+    </a>
+
+    <a href="marketing.html" class="card orange">
+      <span class="arrow">&rarr;</span>
+      <div class="icon">&#9733;</div>
+      <h2>Marketing Performance</h2>
+      <p class="desc">Channel-wise spend, CPI, CAC, ROAS trends across Meta, Google, and Ultra with green cohort quality scoring.</p>
+      <div class="tags">
+        <span class="tag">CPI</span>
+        <span class="tag">CAC</span>
+        <span class="tag">ROAS</span>
+        <span class="tag">Channel Mix</span>
+      </div>
+    </a>
+
+    <a href="ab-experiments.html" class="card teal">
+      <span class="arrow">&rarr;</span>
+      <div class="icon">&#9878;</div>
+      <h2>A/B Experiment Tracker</h2>
+      <p class="desc">Active experiments, statistical significance tracking, variant performance, and historical experiment outcomes.</p>
+      <div class="tags">
+        <span class="tag">A/B Tests</span>
+        <span class="tag">Significance</span>
+        <span class="tag">Lift %</span>
+        <span class="tag">Variants</span>
+      </div>
+    </a>
+
+    <a href="cohort.html" class="card indigo">
+      <span class="arrow">&rarr;</span>
+      <div class="icon">&#9881;</div>
+      <h2>Cohort Deep-Dive</h2>
+      <p class="desc">Monthly retention curves, LTV by cohort vintage, green vs non-green retention, and churn pattern analysis.</p>
+      <div class="tags">
+        <span class="tag">Retention</span>
+        <span class="tag">LTV</span>
+        <span class="tag">Churn</span>
+        <span class="tag">Cohorts</span>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="footer">
+    <p><span class="pulse"></span>Live data · Powered by SpeakX Analytics</p>
+  </div>
+
+</div>
+</body>
+</html>
