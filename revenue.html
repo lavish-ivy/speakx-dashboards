@@ -501,24 +501,93 @@ function renderDashboard(filters) {
     });
     dailyEl.appendChild(dBody);
 
-    // ── Status ──
-    var cfg = window.SPEAKX.CONFIG;
-    if (cfg && cfg.REDASH_URL) {
-        window.SPEAKX.Filters.setStatus('Live data from Redash \xB7 ' + DAILY_REV.length + ' days shown', 'live');
-    } else {
-        window.SPEAKX.Filters.setStatus('Snapshot data (Mar 5, 2026) \xB7 Set REDASH_URL in config.js for live data', 'snapshot');
-    }
 }
 
-// ═══ INITIALIZE FILTERS ═══
-window.SPEAKX.Filters.init('filters', [
-    { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 }
-], function(state) {
-    renderDashboard(state);
-});
+// ═══ INITIALIZE WITH LIVE DATA ═══
+/** Convert ISO date "2026-02-03" to display format "Feb 3" */
+function isoToShortDate(iso) {
+    var d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
-// Initial render
-renderDashboard(window.SPEAKX.Filters.getState());
+(async function() {
+    var DL = window.SPEAKX.DataLoader;
+    var F  = window.SPEAKX.Filters;
+    var cfg = window.SPEAKX.CONFIG;
+    var liveCount = 0;
+
+    F.setStatus('Loading live data...', 'loading');
+
+    // ── Daily revenue (transform dt → d) ──
+    var live = await DL.fetchSQL('rev_daily');
+    if (live && live.length) {
+        EMBEDDED_DAILY_REV = live.map(function(r) {
+            return { d: isoToShortDate(r.dt), trial: r.trial, monthly: r.monthly, total: r.total, tTxn: r.tTxn, mTxn: r.mTxn, txn: r.txn };
+        });
+        liveCount++;
+    }
+
+    // ── Weekly revenue (transform week_start → w) ──
+    live = await DL.fetchSQL('rev_weekly');
+    if (live && live.length) {
+        EMBEDDED_WEEKLY_REV = live.map(function(r) {
+            return { w: isoToShortDate(r.week_start), trial: r.trial, monthly: r.monthly, total: r.total, payers: r.payers, arpu: r.arpu };
+        });
+        liveCount++;
+    }
+
+    // ── Payment methods (add avg) ──
+    live = await DL.fetchSQL('rev_payment_method');
+    if (live && live.length) {
+        EMBEDDED_PAY_METHODS = live.map(function(r) {
+            return { method: r.method, revenue: r.revenue, txns: r.txns, avg: r.txns ? Math.round(r.revenue * 100 / r.txns) / 100 : 0 };
+        });
+        liveCount++;
+    }
+
+    // ── Revenue by type/channel (compose ch label) ──
+    live = await DL.fetchSQL('rev_by_type');
+    if (live && live.length) {
+        EMBEDDED_CHANNELS = live.map(function(r) {
+            return { ch: r.checkout_type + ' \xB7 ' + (r.plan === '7' ? 'Trial' : r.plan === '30' ? 'Monthly' : r.plan === '365' ? 'Annual' : r.plan === '90' ? 'Quarterly' : r.plan), rev: r.revenue, txns: r.txns };
+        });
+        liveCount++;
+    }
+
+    // ── Payment success rate (transform dt → d, add derived fields) ──
+    live = await DL.fetchSQL('rev_success_rate');
+    if (live && live.length) {
+        EMBEDDED_SUCCESS_RATE = live.map(function(r) {
+            return { d: isoToShortDate(r.dt), attempts: r.attempts, success: r.success, fail: r.attempts - r.success, refund: 0, rate: r.success_rate };
+        });
+        liveCount++;
+    }
+
+    // ── Payment providers (rename fields) ──
+    live = await DL.fetchSQL('rev_providers');
+    if (live && live.length) {
+        EMBEDDED_PROVIDERS = live.map(function(r) {
+            return { name: r.provider, attempts: r.total_txns, successes: r.success_txns, rate: r.success_rate, rev: r.revenue };
+        });
+        liveCount++;
+    }
+
+    // Initialize filters
+    F.init('filters', [
+        { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 }
+    ], function(state) { renderDashboard(state); });
+
+    renderDashboard(F.getState());
+
+    // Set accurate status
+    if (liveCount > 0) {
+        F.setStatus('Live data from Redash \xB7 ' + liveCount + '/6 datasets', 'live');
+    } else if (cfg && cfg.REDASH_USER_API_KEY) {
+        F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
+    } else {
+        F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
+    }
+})();
 </script>
 </body>
 </html>

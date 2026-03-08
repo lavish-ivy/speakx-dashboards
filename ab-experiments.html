@@ -345,30 +345,72 @@ function renderDashboard(filters) {
     tbl.appendChild(tr);
   });
 
-  /* ── Status indicator ── */
-  F.setStatus('Using embedded snapshot data', 'snapshot');
 }
 
 /* ═══════════════════════════════════════════════
-   Initialize filters
+   Initialize with live data
    ═══════════════════════════════════════════════ */
-var expOptions = [];
-var seenInit = {};
-EMBEDDED_expData.forEach(function(r) {
-  if (!seenInit[r.e]) { seenInit[r.e] = true; expOptions.push({ e: r.e, sp: r.sp }); }
-});
-expOptions.sort(function(a, b) { return b.sp - a.sp; });
+(async function() {
+  var cfg = window.SPEAKX.CONFIG;
+  var liveCount = 0;
 
-F.init('abFilters', [
-  { type: 'select', key: 'experiment', label: 'Experiment',
-    options: expOptions.map(function(o) {
-      return { value: String(o.e), text: 'Exp #' + o.e + ' (' + o.sp.toFixed(2) + '% spread)' };
-    })
-  },
-  { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 }
-], renderDashboard);
+  F.setStatus('Loading live data...', 'loading');
 
-/* first render */
-renderDashboard(F.getState());
+  /** Compute spread (max CVR − min CVR) per experiment and attach to each row */
+  function addSpread(rows) {
+    var byExp = {};
+    rows.forEach(function(r) {
+      if (!byExp[r.e]) byExp[r.e] = [];
+      byExp[r.e].push(r.cvr);
+    });
+    rows.forEach(function(r) {
+      var cvrs = byExp[r.e];
+      r.sp = Math.round((Math.max.apply(null, cvrs) - Math.min.apply(null, cvrs)) * 100) / 100;
+    });
+    return rows;
+  }
+
+  // ── Experiment summary ──
+  var live = await DL.fetchSQL('ab_experiment_summary');
+  if (live && live.length) {
+    EMBEDDED_expData = addSpread(live);
+    liveCount++;
+  }
+
+  // ── Daily trend ──
+  live = await DL.fetchSQL('ab_daily_trend');
+  if (live && live.length) {
+    EMBEDDED_dailyTrend = live;
+    liveCount++;
+  }
+
+  // Build experiment options from (possibly live) data
+  var expOptions = [];
+  var seenInit = {};
+  EMBEDDED_expData.forEach(function(r) {
+    if (!seenInit[r.e]) { seenInit[r.e] = true; expOptions.push({ e: r.e, sp: r.sp }); }
+  });
+  expOptions.sort(function(a, b) { return b.sp - a.sp; });
+
+  F.init('abFilters', [
+    { type: 'select', key: 'experiment', label: 'Experiment',
+      options: expOptions.map(function(o) {
+        return { value: String(o.e), text: 'Exp #' + o.e + ' (' + o.sp.toFixed(2) + '% spread)' };
+      })
+    },
+    { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 }
+  ], renderDashboard);
+
+  renderDashboard(F.getState());
+
+  // Set accurate status
+  if (liveCount > 0) {
+    F.setStatus('Live data from Redash \xB7 ' + liveCount + '/2 datasets', 'live');
+  } else if (cfg && cfg.REDASH_USER_API_KEY) {
+    F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
+  } else {
+    F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
+  }
+})();
 </script>
 </body></html>

@@ -45,6 +45,82 @@ window.SPEAKX.DataLoader = {
     var cacheKey = queryName + '_' + (cfg?.QUERIES?.[queryName]?.id || '');
     delete this._cache[cacheKey];
     return this.fetch(queryName);
+  },
+
+  /**
+   * Execute a SQL template from CONFIG.SQL via Redash API.
+   * Requires REDASH_USER_API_KEY in config.
+   * @param {string} sqlKey — key in CONFIG.SQL
+   * @returns {Promise<Array|null>} — array of row objects, or null on failure
+   */
+  async fetchSQL(sqlKey) {
+    var cfg = window.SPEAKX.CONFIG;
+    if (!cfg || !cfg.REDASH_URL || !cfg.REDASH_USER_API_KEY) return null;
+
+    var sql = cfg.SQL && cfg.SQL[sqlKey];
+    if (!sql) return null;
+
+    var cacheKey = 'sql_' + sqlKey;
+    if (this._cache[cacheKey]) return this._cache[cacheKey];
+
+    try {
+      var url = cfg.REDASH_URL + '/api/query_results';
+      var res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Key ' + cfg.REDASH_USER_API_KEY
+        },
+        body: JSON.stringify({
+          data_source_id: cfg.DATA_SOURCE_ID || 1,
+          query: sql,
+          max_age: 1800
+        })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var json = await res.json();
+
+      // If Redash returned a job (query is executing), poll for results
+      if (json.job) {
+        json = await this._pollJob(json.job.id, cfg);
+      }
+
+      var rows = json.query_result && json.query_result.data && json.query_result.data.rows || [];
+      this._cache[cacheKey] = rows;
+      return rows;
+    } catch (err) {
+      console.warn('[SpeakX] fetchSQL(' + sqlKey + ') failed: ' + err.message);
+      return null;
+    }
+  },
+
+  /** Poll a Redash job until it completes */
+  async _pollJob(jobId, cfg) {
+    var maxAttempts = 60;
+    for (var i = 0; i < maxAttempts; i++) {
+      await new Promise(function(r) { setTimeout(r, 1000); });
+      var res = await fetch(cfg.REDASH_URL + '/api/jobs/' + jobId, {
+        headers: { 'Authorization': 'Key ' + cfg.REDASH_USER_API_KEY }
+      });
+      var json = await res.json();
+      var status = json.job && json.job.status;
+      if (status === 3) {
+        var resultId = json.job.query_result_id;
+        var resResult = await fetch(cfg.REDASH_URL + '/api/query_results/' + resultId, {
+          headers: { 'Authorization': 'Key ' + cfg.REDASH_USER_API_KEY }
+        });
+        return await resResult.json();
+      }
+      if (status === 4 || status === 5) {
+        throw new Error('Query failed: ' + (json.job.error || 'unknown'));
+      }
+    }
+    throw new Error('Query timed out after ' + maxAttempts + 's');
+  },
+
+  /** Clear all cached data (used by Refresh button) */
+  clearCache() {
+    this._cache = {};
   }
 };
 

@@ -229,24 +229,48 @@ function renderDashboard(filters) {
     tbl.appendChild(tbody); tblWrap.appendChild(tbl); tblCard.appendChild(tblWrap);
     app.appendChild(tblCard);
 
-    // Status
-    var cfg = window.SPEAKX.CONFIG;
-    if (cfg && cfg.REDASH_URL) {
-        window.SPEAKX.Filters.setStatus('Live data from Redash', 'live');
-    } else {
-        window.SPEAKX.Filters.setStatus('Snapshot data (Mar 2026) \xB7 Set REDASH_URL for live data', 'snapshot');
-    }
 }
 
-// ═══ INITIALIZE FILTERS ═══
-window.SPEAKX.Filters.init('filters', [
-    { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 120 }
-], function(state) {
-    renderDashboard(state);
-});
+// ═══ INITIALIZE WITH LIVE DATA ═══
+(async function() {
+    var DL = window.SPEAKX.DataLoader;
+    var F  = window.SPEAKX.Filters;
+    var cfg = window.SPEAKX.CONFIG;
+    var liveCount = 0;
 
-// Initial render
-renderDashboard(window.SPEAKX.Filters.getState());
+    F.setStatus('Loading live data...', 'loading');
+
+    /** Convert ISO date "2026-02-03" to "Feb 3" */
+    function isoToShort(iso) {
+        var d = new Date(iso + 'T00:00:00');
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    // ── Green cohort weekly trend (maps to EMBEDDED_gt) ──
+    var live = await DL.fetchSQL('cohort_green_weekly');
+    if (live && live.length) {
+        EMBEDDED_gt = live.map(function(r) {
+            return { w: isoToShort(r.w), t: r.t, g: r.g, gp: parseFloat(r.gp), pd: parseFloat(r.pd), dl: parseFloat(r.dl) };
+        });
+        liveCount++;
+    }
+
+    // Initialize filters
+    F.init('filters', [
+        { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 120 }
+    ], function(state) { renderDashboard(state); });
+
+    renderDashboard(F.getState());
+
+    // Set accurate status
+    if (liveCount > 0) {
+        F.setStatus('Live data from Redash \xB7 Green Cohort Trend \xB7 Other charts use snapshot', 'live');
+    } else if (cfg && cfg.REDASH_USER_API_KEY) {
+        F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
+    } else {
+        F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
+    }
+})();
 </script>
 </body>
 </html>

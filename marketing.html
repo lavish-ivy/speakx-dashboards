@@ -284,31 +284,55 @@ function renderDashboard(filters) {
     footer.textContent = 'SpeakX Marketing Performance \xB7 ' + dates.length + ' days \xB7 Data excludes partial current day';
     app.appendChild(footer);
 
-    // Status
-    var cfg = window.SPEAKX.CONFIG;
-    if (cfg && cfg.REDASH_URL) {
-        window.SPEAKX.Filters.setStatus('Live data \xB7 ' + dates.length + ' days shown', 'live');
-    } else {
-        window.SPEAKX.Filters.setStatus('Snapshot data (Mar 4, 2026) \xB7 Set REDASH_URL for live data', 'snapshot');
-    }
 }
 
-// ═══ INITIALIZE FILTERS ═══
-window.SPEAKX.Filters.init('filters', [
-    { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 },
-    { type: 'select', key: 'channel', label: 'Channel', options: [
-        {value:'all', text:'All Channels'},
-        {value:'Google', text:'Google'},
-        {value:'Meta', text:'Meta'},
-        {value:'Organic', text:'Organic'},
-        {value:'Other Paid', text:'Other Paid'}
-    ]}
-], function(state) {
-    renderDashboard(state);
-});
 
-// Initial render
-renderDashboard(window.SPEAKX.Filters.getState());
+// ═══ INITIALIZE WITH LIVE DATA ═══
+(async function() {
+    var DL = window.SPEAKX.DataLoader;
+    var F  = window.SPEAKX.Filters;
+    var cfg = window.SPEAKX.CONFIG;
+    var liveCount = 0;
+
+    F.setStatus('Loading live data...', 'loading');
+
+    // Try to load live data — replaces EMBEDDED_ arrays when successful
+    var live;
+    live = await DL.fetchSQL('mkt_daily_channel');
+    if (live && live.length) { EMBEDDED_dailyChannel = live; liveCount++; }
+
+    live = await DL.fetchSQL('mkt_revenue_daily');
+    if (live && live.length) { EMBEDDED_revenueDaily = live; liveCount++; }
+
+    live = await DL.fetchSQL('mkt_weekly_channel');
+    if (live && live.length) { EMBEDDED_weeklyChannel = live; liveCount++; }
+
+    live = await DL.fetchSQL('mkt_lang_data');
+    if (live && live.length) { EMBEDDED_langData = live; liveCount++; }
+
+    // Initialize filters
+    F.init('filters', [
+        { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 },
+        { type: 'select', key: 'channel', label: 'Channel', options: [
+            {value:'all', text:'All Channels'},
+            {value:'Google', text:'Google'},
+            {value:'Meta', text:'Meta'},
+            {value:'Organic', text:'Organic'},
+            {value:'Other Paid', text:'Other Paid'}
+        ]}
+    ], function(state) { renderDashboard(state); });
+
+    renderDashboard(F.getState());
+
+    // Set accurate status
+    if (liveCount > 0) {
+        F.setStatus('Live data from Redash \xB7 ' + liveCount + '/4 datasets', 'live');
+    } else if (cfg && cfg.REDASH_USER_API_KEY) {
+        F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
+    } else {
+        F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
+    }
+})();
 </script>
 </body>
 </html>

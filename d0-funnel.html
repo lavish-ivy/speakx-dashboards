@@ -407,36 +407,67 @@ function renderDashboard(filters) {
   footer.textContent = 'SpeakX D0 Conversion Funnel \u00B7 ' + daily.length + ' days \u00B7 Data excludes partial current day';
   app.appendChild(footer);
 
-  // Update status
-  var cfg = window.SPEAKX.CONFIG;
-  if (cfg && cfg.REDASH_URL) {
-    window.SPEAKX.Filters.setStatus('Live data from Redash \u00B7 ' + daily.length + ' days shown', 'live');
-  } else {
-    window.SPEAKX.Filters.setStatus('Snapshot data (Mar 4, 2026) \u00B7 Set REDASH_URL in config.js for live data', 'snapshot');
-  }
 }
 
-// ── INITIALIZE FILTERS ──
-var channelOptions = [
-  {value:'all', text:'All Channels'},
-  {value:'Google', text:'Google'},
-  {value:'Meta', text:'Meta'},
-  {value:'Ultra', text:'Ultra'},
-  {value:'Organic', text:'Organic'},
-  {value:'Unattributed', text:'Unattributed'},
-  {value:'xiaomiglobal', text:'Xiaomi'},
-  {value:'moloco', text:'Moloco'}
-];
+// ── INITIALIZE WITH LIVE DATA ──
+(async function() {
+  var DL = window.SPEAKX.DataLoader;
+  var F = window.SPEAKX.Filters;
+  var liveCount = 0;
 
-window.SPEAKX.Filters.init('filters', [
-  { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 },
-  { type: 'select', key: 'channel', label: 'Channel', options: channelOptions }
-], function(state) {
-  renderDashboard(state);
-});
+  F.setStatus = F.setStatus || function(){};
 
-// Initial render
-renderDashboard(window.SPEAKX.Filters.getState());
+  // Show loading state
+  var cfg = window.SPEAKX.CONFIG;
+  if (cfg && cfg.REDASH_USER_API_KEY) {
+    window.SPEAKX.Filters.setStatus('Loading live data from Redash...', 'loading');
+  }
+
+  // Try to load live data (replaces EMBEDDED_ arrays)
+  var live;
+  live = await DL.fetchSQL('d0_daily_funnel');
+  if (live && live.length) { EMBEDDED_dailyFunnel = live; liveCount++; }
+
+  live = await DL.fetchSQL('d0_channel_funnel');
+  if (live && live.length) { EMBEDDED_channelFunnel = live; liveCount++; }
+
+  live = await DL.fetchSQL('d0_weekly_funnel');
+  if (live && live.length) { EMBEDDED_weeklyFunnel = live; liveCount++; }
+
+  live = await DL.fetchSQL('d0_campaign_data');
+  if (live && live.length) { EMBEDDED_campaignData = live; liveCount++; }
+
+  // Initialize filters
+  var channelOptions = [
+    {value:'all', text:'All Channels'},
+    {value:'Google', text:'Google'},
+    {value:'Meta', text:'Meta'},
+    {value:'Ultra', text:'Ultra'},
+    {value:'Organic', text:'Organic'},
+    {value:'Unattributed', text:'Unattributed'},
+    {value:'xiaomiglobal', text:'Xiaomi'},
+    {value:'moloco', text:'Moloco'}
+  ];
+
+  F.init('filters', [
+    { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 },
+    { type: 'select', key: 'channel', label: 'Channel', options: channelOptions }
+  ], function(state) {
+    renderDashboard(state);
+  });
+
+  // Initial render
+  renderDashboard(F.getState());
+
+  // Set accurate status
+  if (liveCount > 0) {
+    F.setStatus('Live data from Redash \u00B7 ' + liveCount + '/4 datasets \u00B7 ' + EMBEDDED_dailyFunnel.length + ' days', 'live');
+  } else if (cfg && cfg.REDASH_USER_API_KEY) {
+    F.setStatus('Failed to load live data \u00B7 Using snapshot', 'error');
+  } else {
+    F.setStatus('Snapshot data \u00B7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
+  }
+})();
 </script>
 </body>
 </html>
