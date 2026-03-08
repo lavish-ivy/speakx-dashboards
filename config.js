@@ -10,7 +10,7 @@
 window.SPEAKX = window.SPEAKX || {};
 
 window.SPEAKX.CONFIG = {
-  REDASH_URL: '', // ← Set your Redash URL here
+  REDASH_URL: 'https://redash.speakx.com', // ← Live Redash instance
 
   // Query map: each entry has the saved query ID and its public API key
   QUERIES: {
