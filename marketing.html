@@ -81,14 +81,14 @@ khtml+='</div>';
 app.innerHTML=khtml;
 
 // Chart 1: Daily installs stacked by channel
-app.innerHTML+=`<div class="grid-2"><div class="card"><h3>Daily Installs by Channel</h3><canvas id="c1"></canvas></div><div class="card"><h3>Daily Revenue (Trial + Monthly)</h3><canvas id="c2"></canvas></div></div>`;
+app.insertAdjacentHTML('beforeend',`<div class="grid-2"><div class="card"><h3>Daily Installs by Channel</h3><canvas id="c1"></canvas></div><div class="card"><h3>Daily Revenue (Trial + Monthly)</h3><canvas id="c2"></canvas></div></div>`);
 
 new Chart(document.getElementById('c1'),{type:'bar',data:{labels:dates.map(shortDate),datasets:channels.map(c=>({label:c,data:pivot(c,'installs'),backgroundColor:chColors[c]+'cc'}))},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>fN(v)}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
 
 new Chart(document.getElementById('c2'),{type:'bar',data:{labels:revenueDaily.map(r=>shortDate(r.dt)),datasets:[{label:'Trial ₹',data:revenueDaily.map(r=>r.trial_revenue),backgroundColor:'#fdcb6ecc'},{label:'Monthly ₹',data:revenueDaily.map(r=>r.monthly_revenue),backgroundColor:'#00b894cc'}]},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>'₹'+fN(v)}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
 
 // Chart 2: Weekly channel CVR trend
-app.innerHTML+=`<div class="grid-2"><div class="card"><h3>Weekly CVR by Channel (12 weeks)</h3><canvas id="c3"></canvas></div><div class="card"><h3>Install Mix by Language (30 days)</h3><canvas id="c4"></canvas></div></div>`;
+app.insertAdjacentHTML('beforeend',`<div class="grid-2"><div class="card"><h3>Weekly CVR by Channel (12 weeks)</h3><canvas id="c3"></canvas></div><div class="card"><h3>Install Mix by Language (30 days)</h3><canvas id="c4"></canvas></div></div>`);
 
 const weeks=[...new Set(weeklyChannel.map(r=>r.week_start))];
 const wPivot=(ch)=>weeks.map(w=>{const r=weeklyChannel.find(x=>x.week_start===w&&x.channel_group===ch);return r?r.cvr:0});
@@ -99,11 +99,11 @@ const langFiltered=langData.filter(r=>r.installs>5000);
 new Chart(document.getElementById('c4'),{type:'doughnut',data:{labels:langFiltered.map(r=>langNames[r.lang]||r.lang),datasets:[{data:langFiltered.map(r=>r.installs),backgroundColor:['#e17055','#fdcb6e','#00b894','#74b9ff','#a29bfe','#fd79a8','#00cec9','#636e72','#ff6b6b','#dfe6e9']}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#ccc',font:{size:11}}}}}});
 
 // Chart 3: Language CVR bar
-app.innerHTML+=`<div class="card"><h3>Conversion Rate by Language (30 days, ≥5K installs)</h3><canvas id="c5"></canvas></div>`;
+app.insertAdjacentHTML('beforeend',`<div class="card"><h3>Conversion Rate by Language (30 days, ≥5K installs)</h3><canvas id="c5"></canvas></div>`);
 new Chart(document.getElementById('c5'),{type:'bar',data:{labels:langFiltered.map(r=>langNames[r.lang]||r.lang),datasets:[{label:'CVR %',data:langFiltered.map(r=>r.cvr),backgroundColor:langFiltered.map(r=>r.cvr>=8?'#00b894cc':r.cvr>=5?'#fdcb6ecc':'#ff6b6bcc'),borderRadius:6}]},options:{responsive:true,scales:{y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>v+'%'}},x:{ticks:{color:'#ccc'}}},plugins:{legend:{display:false}}}});
 
 // Weekly channel stacked installs
-app.innerHTML+=`<div class="card"><h3>Weekly Install Volume by Channel (12 weeks)</h3><canvas id="c6"></canvas></div>`;
+app.insertAdjacentHTML('beforeend',`<div class="card"><h3>Weekly Install Volume by Channel (12 weeks)</h3><canvas id="c6"></canvas></div>`);
 const wInstalls=(ch)=>weeks.map(w=>{const r=weeklyChannel.find(x=>x.week_start===w&&x.channel_group===ch);return r?r.installs:0});
 new Chart(document.getElementById('c6'),{type:'bar',data:{labels:weeks.map(shortDate),datasets:channels.map(c=>({label:c,data:wInstalls(c),backgroundColor:chColors[c]+'cc'}))},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#888'}},y:{stacked:true,grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>fN(v)}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
 
@@ -115,9 +115,9 @@ langData.forEach(r=>{
   lhtml+=`<tr><td>${langNames[r.lang]||r.lang}</td><td style="text-align:right">${fN(r.installs)}</td><td style="text-align:right">${fN(r.payments)}</td><td style="text-align:right"><span class="tag ${tag}">${r.cvr}%</span></td><td style="text-align:right">${share}%</td></tr>`;
 });
 lhtml+='</tbody></table></div></div>';
-app.innerHTML+=lhtml;
+app.insertAdjacentHTML('beforeend',lhtml);
 
-app.innerHTML+='<p style="text-align:center;color:#555;font-size:11px;margin-top:20px">SpeakX Marketing Performance · Auto-generated · Data excludes partial current day</p>';
+app.insertAdjacentHTML('beforeend','<p style="text-align:center;color:#555;font-size:11px;margin-top:20px">SpeakX Marketing Performance · Auto-generated · Data excludes partial current day</p>');
 </script>
 </body>
 </html>

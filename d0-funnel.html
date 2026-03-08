@@ -109,13 +109,13 @@ steps.forEach(s=>{
   fhtml+=`<div class="funnel-bar"><div class="step-name">${s.name}</div><div class="bar-wrap"><div class="bar-fill" style="width:${w}%;background:${s.color}"></div><div class="bar-text">${fN(s.val)} (${cvr}%)</div></div></div>`;
 });
 fhtml+='</div>';
-app.innerHTML += fhtml;
+app.insertAdjacentHTML('beforeend', fhtml);
 
 // CHARTS ROW 1: Daily Install + Payment trend, Weekly CVR trend
-app.innerHTML += `<div class="grid-2">
+app.insertAdjacentHTML('beforeend', `<div class="grid-2">
   <div class="card"><h3>Daily Installs & Payments</h3><canvas id="cDaily"></canvas></div>
   <div class="card"><h3>Weekly CVR Trend (12 weeks)</h3><canvas id="cWeekly"></canvas></div>
-</div>`;
+</div>`);
 
 new Chart(document.getElementById('cDaily'),{type:'line',data:{
   labels:dailyFunnel.map(r=>shortDate(r.dt)),
@@ -132,10 +132,10 @@ new Chart(document.getElementById('cWeekly'),{type:'bar',data:{
   ]},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{position:'left',grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>v+'%'},min:0,max:10},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#00cec9',callback:v=>fN(v)}},x:{ticks:{color:'#888'}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
 
 // CHARTS ROW 2: Channel funnel bars, Daily Overall CVR trend
-app.innerHTML += `<div class="grid-2">
+app.insertAdjacentHTML('beforeend', `<div class="grid-2">
   <div class="card"><h3>CVR by Channel (30 days)</h3><canvas id="cChannel"></canvas></div>
   <div class="card"><h3>Daily Overall CVR %</h3><canvas id="cCVR"></canvas></div>
-</div>`;
+</div>`);
 
 const chTop = channelFunnel.filter(r=>r.installs>1000);
 new Chart(document.getElementById('cChannel'),{type:'bar',data:{
@@ -151,7 +151,7 @@ new Chart(document.getElementById('cCVR'),{type:'line',data:{
   ]},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>v+'%'}},x:{ticks:{color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:15}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
 
 // CHARTS ROW 3: Step-level drop-off
-app.innerHTML += `<div class="card"><h3>Step-Level Conversion Rates (30-day avg)</h3><canvas id="cSteps"></canvas></div>`;
+app.insertAdjacentHTML('beforeend', `<div class="card"><h3>Step-Level Conversion Rates (30-day avg)</h3><canvas id="cSteps"></canvas></div>`);
 
 const stepNames = ['Install→FS','FS→OB','OB→Login','Login→Checkout','Checkout→Pay'];
 const stepVals = [
@@ -174,7 +174,7 @@ campaignData.forEach(r=>{
   thtml+=`<tr><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td><td><span style="color:${chColor[r.channel_group]||'#aaa'}">${r.channel_group}</span></td><td style="text-align:right">${fN(r.installs)}</td><td style="text-align:right">${fN(r.payments)}</td><td style="text-align:right"><span class="tag ${tag}">${r.cvr}%</span></td><td style="text-align:right">${r.cancel_rate}%</td></tr>`;
 });
 thtml+='</tbody></table></div></div>';
-app.innerHTML += thtml;
+app.insertAdjacentHTML('beforeend', thtml);
 
 // DAILY DETAIL TABLE
 let dhtml='<div class="card"><h3>Daily Funnel Detail</h3><div style="overflow-x:auto;max-height:400px;overflow-y:auto"><table><thead><tr><th>Date</th><th style="text-align:right">Installs</th><th style="text-align:right">FS Shown</th><th style="text-align:right">OB Done</th><th style="text-align:right">Login</th><th style="text-align:right">Checkout</th><th style="text-align:right">Orders</th><th style="text-align:right">Payments</th><th style="text-align:right">CVR%</th><th style="text-align:right">Cancels</th></tr></thead><tbody>';
@@ -183,9 +183,9 @@ dailyFunnel.forEach(r=>{
   dhtml+=`<tr><td>${shortDate(r.dt)}</td><td style="text-align:right">${fN(r.installs)}</td><td style="text-align:right">${fN(r.fs_shown)}</td><td style="text-align:right">${fN(r.ob_completed)}</td><td style="text-align:right">${fN(r.login_users)}</td><td style="text-align:right">${fN(r.checkout_load)}</td><td style="text-align:right">${fN(r.order_created)}</td><td style="text-align:right">${fN(r.payments)}</td><td style="text-align:right">${cvr}%</td><td style="text-align:right">${r.d0_cancellations}</td></tr>`;
 });
 dhtml+='</tbody></table></div></div>';
-app.innerHTML += dhtml;
+app.insertAdjacentHTML('beforeend', dhtml);
 
-app.innerHTML += '<p style="text-align:center;color:#555;font-size:11px;margin-top:20px">SpeakX D0 Conversion Funnel · Auto-generated · Data excludes partial current day</p>';
+app.insertAdjacentHTML('beforeend', '<p style="text-align:center;color:#555;font-size:11px;margin-top:20px">SpeakX D0 Conversion Funnel · Auto-generated · Data excludes partial current day</p>');
 </script>
 </body>
 </html>
