@@ -2,60 +2,58 @@
 <title>SpeakX A/B Experiment Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="speakx-filters.css">
+<script src="config.js"></script>
+<script src="speakx-common.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff7ed;color:#111827}
 .hdr{background:linear-gradient(135deg,#ff4d00,#FF7810);padding:28px 32px;display:flex;justify-content:space-between;align-items:center}
 .hdr h1{font-size:22px;color:#fff}.hdr .sub{color:rgba(255,255,255,.9);font-size:13px}
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px 24px}
 .kpi{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.kpi .lbl{font-size:11px;color:#ea580c;text-transform:uppercase;letter-spacing:1px;font-weight:600}.kpi .val{font-size:26px;font-weight:700;color:#111827;margin:4px 0}
+.kpi .lbl{font-size:11px;color:#ea580c;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.kpi .val{font-size:26px;font-weight:700;color:#111827;margin:4px 0}
 .kpi .delta{font-size:12px;color:#6b7280}.up{color:#16a34a}.dn{color:#dc2626}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 24px 18px}
+.grid{display:grid;grid-template-columns:1fr;gap:16px;padding:0 24px 18px}
 .card{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.card.full{grid-column:1/-1}.card h3{font-size:14px;color:#111827;margin-bottom:12px;border-bottom:1px solid #e5e7eb;padding-bottom:8px}
+.card h3{font-size:14px;color:#111827;margin-bottom:12px;border-bottom:1px solid #e5e7eb;padding-bottom:8px}
 table{width:100%;border-collapse:collapse;font-size:12px}th{background:#fff7ed;color:#ea580c;padding:8px 10px;text-align:left;font-weight:600}
 td{padding:7px 10px;border-bottom:1px solid #f3f4f6;color:#374151}.winner{color:#16a34a;font-weight:700}.loser{color:#dc2626}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
 .badge-high{background:rgba(34,197,94,.1);color:#16a34a}.badge-med{background:rgba(249,115,22,.1);color:#ea580c}.badge-low{background:rgba(156,163,175,.1);color:#6b7280}
-select{background:#fff;color:#111827;border:1px solid #e5e7eb;padding:6px 12px;border-radius:6px;font-size:13px;margin-bottom:10px;font-family:'Figtree',sans-serif}
 .legend-row{display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap}.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#374151}
 .leg span{width:12px;height:12px;border-radius:3px;display:inline-block}
+.no-data{text-align:center;color:#9ca3af;padding:40px 0;font-size:13px}
 </style></head><body>
-<div class="hdr"><div><h1>A/B Experiment Tracker</h1><div class="sub">85 Active Experiments &middot; 14-Day Window &middot; Feb 19 – Mar 5, 2026</div></div><div style="text-align:right"><div style="color:rgba(255,255,255,.9);font-size:12px">SpeakX Analytics</div><div style="color:rgba(255,255,255,.75);font-size:11px">Auto-refreshed from prod DB</div></div></div>
 
-<div class="kpi-row">
-<div class="kpi"><div class="lbl">Total Experiments</div><div class="val">85</div><div class="delta">All 4-arm (CONTROL/A/B/C)</div></div>
-<div class="kpi"><div class="lbl">High Impact (≥0.5% spread)</div><div class="val" style="color:#16a34a">1</div><div class="delta">Exp #26 — 0.84% CVR spread</div></div>
-<div class="kpi"><div class="lbl">Medium Impact (0.2-0.5%)</div><div class="val" style="color:#ea580c">9</div><div class="delta">Avg spread: 0.27%</div></div>
-<div class="kpi"><div class="lbl">Low Impact (&lt;0.2%)</div><div class="val" style="color:#6b7280">75</div><div class="delta">Avg spread: 0.07%</div></div>
-</div>
+<div class="hdr"><div><h1>A/B Experiment Tracker</h1><div class="sub" id="headerSub">Loading...</div></div><div style="text-align:right"><div style="color:rgba(255,255,255,.9);font-size:12px">SpeakX Analytics</div><div style="color:rgba(255,255,255,.75);font-size:11px">Auto-refreshed from prod DB</div></div></div>
+
+<div class="spx-filters-container" id="abFilters" style="margin:18px 24px 0"></div>
+
+<div class="kpi-row" id="kpiRow"></div>
 
 <div class="grid">
-<div class="card full"><h3>Top 10 Experiments by CVR Spread — Bucket Comparison (14-day)</h3>
+<div class="card"><h3>Top Experiments by CVR Spread &mdash; Bucket Comparison</h3>
 <canvas id="c1" height="70"></canvas></div>
 
-<div class="card"><h3>Experiment #26 — Daily CVR Trend (Highest Impact)</h3>
+<div class="card"><h3 id="trendTitle">Daily CVR Trend</h3>
 <div class="legend-row"><div class="leg"><span style="background:#ef4444"></span>A</div><div class="leg"><span style="background:#fbbf24"></span>B</div><div class="leg"><span style="background:#22c55e"></span>C</div><div class="leg"><span style="background:#3b82f6"></span>CONTROL</div></div>
-<canvas id="c2" height="120"></canvas></div>
+<div id="trendNoData" class="no-data" style="display:none">No daily trend data available for this experiment</div>
+<canvas id="c2" height="50"></canvas></div>
 
-<div class="card"><h3>Experiment #4 — Daily CVR Trend</h3>
-<div class="legend-row"><div class="leg"><span style="background:#ef4444"></span>A</div><div class="leg"><span style="background:#fbbf24"></span>B</div><div class="leg"><span style="background:#22c55e"></span>C</div><div class="leg"><span style="background:#3b82f6"></span>CONTROL</div></div>
-<canvas id="c3" height="120"></canvas></div>
+<div class="card"><h3 id="funnelTitle">Full Funnel Breakdown by Bucket</h3>
+<canvas id="c3" height="55"></canvas></div>
 
-<div class="card full"><h3>Experiment #26 — Full Funnel Breakdown by Bucket</h3>
-<canvas id="c4" height="55"></canvas></div>
-
-<div class="card full"><h3>All Top 10 Experiments — Detailed Metrics</h3>
+<div class="card"><h3>All Experiments &mdash; Detailed Metrics</h3>
 <table><thead><tr><th>Exp#</th><th>Impact</th><th>Bucket</th><th>Installs</th><th>OB Done</th><th>Login</th><th>Checkout</th><th>Orders</th><th>Payments</th><th>CVR%</th><th>vs CTRL</th></tr></thead>
 <tbody id="tbl"></tbody></table></div>
 </div>
 
 <script>
-const BC={A:'#ef4444',B:'#fbbf24',C:'#22c55e',CONTROL:'#3b82f6'};
-const fN=n=>n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'K':n.toString();
-
-// Q1: Top 10 experiment funnel data
-const expData=[
+/* ═══════════════════════════════════════════════
+   Embedded snapshot data (replaced by Redash when configured)
+   ═══════════════════════════════════════════════ */
+var EMBEDDED_expData=[
 {e:26,b:'A',i:110553,fs:108485,ob:79319,lo:56241,ck:55313,or:16826,p:4902,cvr:4.43,sp:0.84},
 {e:26,b:'B',i:110148,fs:108233,ob:78874,lo:56030,ck:55179,or:18150,p:5647,cvr:5.13,sp:0.84},
 {e:26,b:'C',i:110413,fs:108436,ob:79074,lo:56101,ck:55187,or:17980,p:5824,cvr:5.27,sp:0.84},
@@ -98,47 +96,279 @@ const expData=[
 {e:25,b:'CONTROL',i:110541,fs:108491,ob:78994,lo:56211,ck:55332,or:17719,p:5354,cvr:4.84,sp:0.2}
 ];
 
-// Q2: Daily trend for top 5 (exp 4,8,12,13,26) — inline compact
-const dailyTrend=[{"d":"2026-02-19","e":4,"b":"A","c":5.68},{"d":"2026-02-19","e":4,"b":"B","c":5.3},{"d":"2026-02-19","e":4,"b":"C","c":5.93},{"d":"2026-02-19","e":4,"b":"CONTROL","c":5.84},{"d":"2026-02-20","e":4,"b":"A","c":6.1},{"d":"2026-02-20","e":4,"b":"B","c":5.57},{"d":"2026-02-20","e":4,"b":"C","c":5.68},{"d":"2026-02-20","e":4,"b":"CONTROL","c":6.29},{"d":"2026-02-21","e":4,"b":"A","c":6.25},{"d":"2026-02-21","e":4,"b":"B","c":6.35},{"d":"2026-02-21","e":4,"b":"C","c":6.2},{"d":"2026-02-21","e":4,"b":"CONTROL","c":6.38},{"d":"2026-02-22","e":4,"b":"A","c":5.65},{"d":"2026-02-22","e":4,"b":"B","c":5.51},{"d":"2026-02-22","e":4,"b":"C","c":5.59},{"d":"2026-02-22","e":4,"b":"CONTROL","c":5.62},{"d":"2026-02-23","e":4,"b":"A","c":4.92},{"d":"2026-02-23","e":4,"b":"B","c":4.47},{"d":"2026-02-23","e":4,"b":"C","c":4.34},{"d":"2026-02-23","e":4,"b":"CONTROL","c":4.95},{"d":"2026-02-24","e":4,"b":"A","c":4.21},{"d":"2026-02-24","e":4,"b":"B","c":4.28},{"d":"2026-02-24","e":4,"b":"C","c":4.17},{"d":"2026-02-24","e":4,"b":"CONTROL","c":4.99},{"d":"2026-02-25","e":4,"b":"A","c":4.14},{"d":"2026-02-25","e":4,"b":"B","c":4.89},{"d":"2026-02-25","e":4,"b":"C","c":4.2},{"d":"2026-02-25","e":4,"b":"CONTROL","c":4.89},{"d":"2026-02-26","e":4,"b":"A","c":4.6},{"d":"2026-02-26","e":4,"b":"B","c":4.4},{"d":"2026-02-26","e":4,"b":"C","c":4.04},{"d":"2026-02-26","e":4,"b":"CONTROL","c":4.75},{"d":"2026-02-27","e":4,"b":"A","c":4.14},{"d":"2026-02-27","e":4,"b":"B","c":4.23},{"d":"2026-02-27","e":4,"b":"C","c":3.63},{"d":"2026-02-27","e":4,"b":"CONTROL","c":5.0},{"d":"2026-02-28","e":4,"b":"A","c":4.03},{"d":"2026-02-28","e":4,"b":"B","c":4.2},{"d":"2026-02-28","e":4,"b":"C","c":4.04},{"d":"2026-02-28","e":4,"b":"CONTROL","c":4.65},{"d":"2026-03-01","e":4,"b":"A","c":6.17},{"d":"2026-03-01","e":4,"b":"B","c":6.03},{"d":"2026-03-01","e":4,"b":"C","c":5.92},{"d":"2026-03-01","e":4,"b":"CONTROL","c":5.92},{"d":"2026-03-02","e":4,"b":"A","c":4.38},{"d":"2026-03-02","e":4,"b":"B","c":4.17},{"d":"2026-03-02","e":4,"b":"C","c":4.46},{"d":"2026-03-02","e":4,"b":"CONTROL","c":4.33},{"d":"2026-03-03","e":4,"b":"A","c":4.19},{"d":"2026-03-03","e":4,"b":"B","c":4.28},{"d":"2026-03-03","e":4,"b":"C","c":4.62},{"d":"2026-03-03","e":4,"b":"CONTROL","c":4.68},{"d":"2026-03-04","e":4,"b":"A","c":4.72},{"d":"2026-03-04","e":4,"b":"B","c":4.89},{"d":"2026-03-04","e":4,"b":"C","c":5.03},{"d":"2026-03-04","e":4,"b":"CONTROL","c":5.23},{"d":"2026-03-05","e":4,"b":"A","c":4.82},{"d":"2026-03-05","e":4,"b":"B","c":4.26},{"d":"2026-03-05","e":4,"b":"C","c":4.66},{"d":"2026-03-05","e":4,"b":"CONTROL","c":4.65},
+var EMBEDDED_dailyTrend=[{"d":"2026-02-19","e":4,"b":"A","c":5.68},{"d":"2026-02-19","e":4,"b":"B","c":5.3},{"d":"2026-02-19","e":4,"b":"C","c":5.93},{"d":"2026-02-19","e":4,"b":"CONTROL","c":5.84},{"d":"2026-02-20","e":4,"b":"A","c":6.1},{"d":"2026-02-20","e":4,"b":"B","c":5.57},{"d":"2026-02-20","e":4,"b":"C","c":5.68},{"d":"2026-02-20","e":4,"b":"CONTROL","c":6.29},{"d":"2026-02-21","e":4,"b":"A","c":6.25},{"d":"2026-02-21","e":4,"b":"B","c":6.35},{"d":"2026-02-21","e":4,"b":"C","c":6.2},{"d":"2026-02-21","e":4,"b":"CONTROL","c":6.38},{"d":"2026-02-22","e":4,"b":"A","c":5.65},{"d":"2026-02-22","e":4,"b":"B","c":5.51},{"d":"2026-02-22","e":4,"b":"C","c":5.59},{"d":"2026-02-22","e":4,"b":"CONTROL","c":5.62},{"d":"2026-02-23","e":4,"b":"A","c":4.92},{"d":"2026-02-23","e":4,"b":"B","c":4.47},{"d":"2026-02-23","e":4,"b":"C","c":4.34},{"d":"2026-02-23","e":4,"b":"CONTROL","c":4.95},{"d":"2026-02-24","e":4,"b":"A","c":4.21},{"d":"2026-02-24","e":4,"b":"B","c":4.28},{"d":"2026-02-24","e":4,"b":"C","c":4.17},{"d":"2026-02-24","e":4,"b":"CONTROL","c":4.99},{"d":"2026-02-25","e":4,"b":"A","c":4.14},{"d":"2026-02-25","e":4,"b":"B","c":4.89},{"d":"2026-02-25","e":4,"b":"C","c":4.2},{"d":"2026-02-25","e":4,"b":"CONTROL","c":4.89},{"d":"2026-02-26","e":4,"b":"A","c":4.6},{"d":"2026-02-26","e":4,"b":"B","c":4.4},{"d":"2026-02-26","e":4,"b":"C","c":4.04},{"d":"2026-02-26","e":4,"b":"CONTROL","c":4.75},{"d":"2026-02-27","e":4,"b":"A","c":4.14},{"d":"2026-02-27","e":4,"b":"B","c":4.23},{"d":"2026-02-27","e":4,"b":"C","c":3.63},{"d":"2026-02-27","e":4,"b":"CONTROL","c":5.0},{"d":"2026-02-28","e":4,"b":"A","c":4.03},{"d":"2026-02-28","e":4,"b":"B","c":4.2},{"d":"2026-02-28","e":4,"b":"C","c":4.04},{"d":"2026-02-28","e":4,"b":"CONTROL","c":4.65},{"d":"2026-03-01","e":4,"b":"A","c":6.17},{"d":"2026-03-01","e":4,"b":"B","c":6.03},{"d":"2026-03-01","e":4,"b":"C","c":5.92},{"d":"2026-03-01","e":4,"b":"CONTROL","c":5.92},{"d":"2026-03-02","e":4,"b":"A","c":4.38},{"d":"2026-03-02","e":4,"b":"B","c":4.17},{"d":"2026-03-02","e":4,"b":"C","c":4.46},{"d":"2026-03-02","e":4,"b":"CONTROL","c":4.33},{"d":"2026-03-03","e":4,"b":"A","c":4.19},{"d":"2026-03-03","e":4,"b":"B","c":4.28},{"d":"2026-03-03","e":4,"b":"C","c":4.62},{"d":"2026-03-03","e":4,"b":"CONTROL","c":4.68},{"d":"2026-03-04","e":4,"b":"A","c":4.72},{"d":"2026-03-04","e":4,"b":"B","c":4.89},{"d":"2026-03-04","e":4,"b":"C","c":5.03},{"d":"2026-03-04","e":4,"b":"CONTROL","c":5.23},{"d":"2026-03-05","e":4,"b":"A","c":4.82},{"d":"2026-03-05","e":4,"b":"B","c":4.26},{"d":"2026-03-05","e":4,"b":"C","c":4.66},{"d":"2026-03-05","e":4,"b":"CONTROL","c":4.65},
 {"d":"2026-02-19","e":26,"b":"A","c":5.45},{"d":"2026-02-19","e":26,"b":"B","c":6.22},{"d":"2026-02-19","e":26,"b":"C","c":5.52},{"d":"2026-02-19","e":26,"b":"CONTROL","c":5.56},{"d":"2026-02-20","e":26,"b":"A","c":5.3},{"d":"2026-02-20","e":26,"b":"B","c":6.19},{"d":"2026-02-20","e":26,"b":"C","c":6.19},{"d":"2026-02-20","e":26,"b":"CONTROL","c":5.97},{"d":"2026-02-21","e":26,"b":"A","c":6.5},{"d":"2026-02-21","e":26,"b":"B","c":6.08},{"d":"2026-02-21","e":26,"b":"C","c":6.39},{"d":"2026-02-21","e":26,"b":"CONTROL","c":6.21},{"d":"2026-02-22","e":26,"b":"A","c":5.56},{"d":"2026-02-22","e":26,"b":"B","c":5.38},{"d":"2026-02-22","e":26,"b":"C","c":5.83},{"d":"2026-02-22","e":26,"b":"CONTROL","c":5.59},{"d":"2026-02-23","e":26,"b":"A","c":4.42},{"d":"2026-02-23","e":26,"b":"B","c":4.78},{"d":"2026-02-23","e":26,"b":"C","c":4.76},{"d":"2026-02-23","e":26,"b":"CONTROL","c":4.71},{"d":"2026-02-24","e":26,"b":"A","c":2.73},{"d":"2026-02-24","e":26,"b":"B","c":4.85},{"d":"2026-02-24","e":26,"b":"C","c":5.17},{"d":"2026-02-24","e":26,"b":"CONTROL","c":4.91},{"d":"2026-02-25","e":26,"b":"A","c":3.03},{"d":"2026-02-25","e":26,"b":"B","c":4.96},{"d":"2026-02-25","e":26,"b":"C","c":5.08},{"d":"2026-02-25","e":26,"b":"CONTROL","c":5.06},{"d":"2026-02-26","e":26,"b":"A","c":3.17},{"d":"2026-02-26","e":26,"b":"B","c":4.89},{"d":"2026-02-26","e":26,"b":"C","c":5.27},{"d":"2026-02-26","e":26,"b":"CONTROL","c":4.44},{"d":"2026-02-27","e":26,"b":"A","c":2.88},{"d":"2026-02-27","e":26,"b":"B","c":4.82},{"d":"2026-02-27","e":26,"b":"C","c":4.75},{"d":"2026-02-27","e":26,"b":"CONTROL","c":4.57},{"d":"2026-02-28","e":26,"b":"A","c":3.81},{"d":"2026-02-28","e":26,"b":"B","c":4.08},{"d":"2026-02-28","e":26,"b":"C","c":4.79},{"d":"2026-02-28","e":26,"b":"CONTROL","c":4.24},{"d":"2026-03-01","e":26,"b":"A","c":5.7},{"d":"2026-03-01","e":26,"b":"B","c":5.92},{"d":"2026-03-01","e":26,"b":"C","c":6.35},{"d":"2026-03-01","e":26,"b":"CONTROL","c":6.07},{"d":"2026-03-02","e":26,"b":"A","c":4.34},{"d":"2026-03-02","e":26,"b":"B","c":4.4},{"d":"2026-03-02","e":26,"b":"C","c":4.34},{"d":"2026-03-02","e":26,"b":"CONTROL","c":4.25},{"d":"2026-03-03","e":26,"b":"A","c":4.54},{"d":"2026-03-03","e":26,"b":"B","c":4.34},{"d":"2026-03-03","e":26,"b":"C","c":4.68},{"d":"2026-03-03","e":26,"b":"CONTROL","c":4.21},{"d":"2026-03-04","e":26,"b":"A","c":4.81},{"d":"2026-03-04","e":26,"b":"B","c":5.14},{"d":"2026-03-04","e":26,"b":"C","c":4.94},{"d":"2026-03-04","e":26,"b":"CONTROL","c":4.98},{"d":"2026-03-05","e":26,"b":"A","c":4.33},{"d":"2026-03-05","e":26,"b":"B","c":4.84},{"d":"2026-03-05","e":26,"b":"C","c":5.01},{"d":"2026-03-05","e":26,"b":"CONTROL","c":4.22}];
 
-const sd=d=>d.slice(5);
+/* ═══════════════════════════════════════════════
+   Shared references
+   ═══════════════════════════════════════════════ */
+var charts = {};
+var F  = window.SPEAKX.Filters;
+var FD = window.SPEAKX.FilterData;
+var U  = window.SPEAKX.Utils;
+var DL = window.SPEAKX.DataLoader;
+var BC = {A:'#ef4444', B:'#fbbf24', C:'#22c55e', CONTROL:'#3b82f6'};
+var buckets = ['CONTROL','A','B','C'];
 
-// Chart 1: Grouped bar — CVR per bucket for top 10 experiments
-const expIds=[...new Set(expData.map(r=>r.e))];
-const buckets=['CONTROL','A','B','C'];
-new Chart(document.getElementById('c1'),{type:'bar',data:{
-labels:expIds.map(e=>'Exp #'+e),
-datasets:buckets.map(b=>({label:b,data:expIds.map(e=>{const r=expData.find(x=>x.e===e&&x.b===b);return r?r.cvr:0}),backgroundColor:BC[b]+'cc',borderRadius:4}))
-},options:{responsive:true,plugins:{legend:{labels:{color:'#374151',font:{size:11}}}},scales:{x:{ticks:{color:'#6b7280'},grid:{display:false}},y:{title:{display:true,text:'CVR %',color:'#6b7280'},ticks:{color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'},min:4,max:6}}}});
+/* ═══════════════════════════════════════════════
+   Render dashboard
+   ═══════════════════════════════════════════════ */
+function renderDashboard(filters) {
+  /* destroy existing charts */
+  Object.keys(charts).forEach(function(k) { charts[k] = U.destroyChart(charts[k]); });
 
-// Chart 2: Exp 26 daily trend
-function trendChart(canvasId,expId){
-const rows=dailyTrend.filter(r=>r.e===expId);
-const dates=[...new Set(rows.map(r=>r.d))];
-new Chart(document.getElementById(canvasId),{type:'line',data:{
-labels:dates.map(sd),
-datasets:buckets.map(b=>({label:b,data:dates.map(d=>{const r=rows.find(x=>x.d===d&&x.b===b);return r?r.c:null}),borderColor:BC[b],backgroundColor:BC[b]+'22',tension:0.3,pointRadius:2,borderWidth:2}))
-},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}},grid:{display:false}},y:{title:{display:true,text:'CVR %',color:'#6b7280'},ticks:{color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}}}}});
+  var expData    = EMBEDDED_expData;
+  var dailyTrend = EMBEDDED_dailyTrend;
+
+  /* apply date filter to daily trend */
+  if (filters.dateRange) {
+    dailyTrend = FD.byDateRange(dailyTrend, 'd', filters.dateRange);
+  }
+
+  var selectedExp = filters.experiment ? parseInt(filters.experiment) : 26;
+
+  /* ── Unique experiments (preserve order from data — sorted by spread desc) ── */
+  var uniqueExps = [];
+  var seen = {};
+  expData.forEach(function(r) {
+    if (!seen[r.e]) { seen[r.e] = r; uniqueExps.push(r.e); }
+  });
+
+  /* ── Header subtitle ── */
+  var allDates = dailyTrend.map(function(r) { return r.d; });
+  var minDate = allDates.length ? allDates.reduce(function(a,b) { return a < b ? a : b; }) : '';
+  var maxDate = allDates.length ? allDates.reduce(function(a,b) { return a > b ? a : b; }) : '';
+  var headerSub = document.getElementById('headerSub');
+  headerSub.textContent = uniqueExps.length + ' Experiments \u00b7 ' +
+    (minDate && maxDate ? U.shortDate(minDate) + ' \u2013 ' + U.shortDate(maxDate) : '14-Day Window');
+
+  /* ══════════════ KPIs ══════════════ */
+  var highExps = uniqueExps.filter(function(e) { return seen[e].sp >= 0.5; });
+  var medExps  = uniqueExps.filter(function(e) { return seen[e].sp >= 0.2 && seen[e].sp < 0.5; });
+  var lowExps  = uniqueExps.filter(function(e) { return seen[e].sp < 0.2; });
+
+  var avgMedSpread = medExps.length > 0
+    ? (medExps.reduce(function(s,e) { return s + seen[e].sp; }, 0) / medExps.length).toFixed(2) : '0.00';
+  var avgLowSpread = lowExps.length > 0
+    ? (lowExps.reduce(function(s,e) { return s + seen[e].sp; }, 0) / lowExps.length).toFixed(2) : '0.00';
+
+  var highLabel = highExps.length > 0
+    ? 'Exp #' + highExps[0] + ' \u2014 ' + seen[highExps[0]].sp.toFixed(2) + '% spread'
+    : 'None';
+
+  var kpiRow = document.getElementById('kpiRow');
+  kpiRow.textContent = '';
+
+  function makeKpi(label, value, delta, valColor) {
+    var d  = document.createElement('div'); d.className = 'kpi';
+    var l  = document.createElement('div'); l.className = 'lbl'; l.textContent = label;
+    var v  = document.createElement('div'); v.className = 'val'; v.textContent = value;
+    if (valColor) v.style.color = valColor;
+    var dt = document.createElement('div'); dt.className = 'delta'; dt.textContent = delta;
+    d.appendChild(l); d.appendChild(v); d.appendChild(dt);
+    return d;
+  }
+
+  kpiRow.appendChild(makeKpi('Total Experiments', String(uniqueExps.length), 'All 4-arm (CONTROL/A/B/C)'));
+  kpiRow.appendChild(makeKpi('High Impact (\u22650.5% spread)', String(highExps.length), highLabel, '#16a34a'));
+  kpiRow.appendChild(makeKpi('Medium Impact (0.2-0.5%)', String(medExps.length), 'Avg spread: ' + avgMedSpread + '%', '#ea580c'));
+  kpiRow.appendChild(makeKpi('Low Impact (<0.2%)', String(lowExps.length), 'Avg spread: ' + avgLowSpread + '%', '#6b7280'));
+
+  /* ══════════════ Chart 1: CVR Spread — All Experiments ══════════════ */
+  charts.c1 = new Chart(document.getElementById('c1'), {
+    type: 'bar',
+    data: {
+      labels: uniqueExps.map(function(e) { return 'Exp #' + e; }),
+      datasets: buckets.map(function(b) {
+        return {
+          label: b,
+          data: uniqueExps.map(function(e) {
+            var r = expData.find(function(x) { return x.e === e && x.b === b; });
+            return r ? r.cvr : 0;
+          }),
+          backgroundColor: BC[b] + 'cc',
+          borderRadius: 4
+        };
+      })
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#374151', font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: '#6b7280' }, grid: { display: false } },
+        y: { title: { display: true, text: 'CVR %', color: '#6b7280' },
+             ticks: { color: '#6b7280' }, grid: { color: 'rgba(0,0,0,.06)' },
+             min: 4, max: 6 }
+      }
+    }
+  });
+
+  /* ══════════════ Chart 2: Selected Experiment — Daily CVR Trend ══════════════ */
+  document.getElementById('trendTitle').textContent =
+    'Experiment #' + selectedExp + ' \u2014 Daily CVR Trend';
+
+  var trendRows = dailyTrend.filter(function(r) { return r.e === selectedExp; });
+  var trendNoData = document.getElementById('trendNoData');
+  var c2Canvas    = document.getElementById('c2');
+
+  if (trendRows.length === 0) {
+    trendNoData.style.display = 'block';
+    c2Canvas.style.display = 'none';
+  } else {
+    trendNoData.style.display = 'none';
+    c2Canvas.style.display = 'block';
+
+    var dates = [];
+    var dateSet = {};
+    trendRows.forEach(function(r) {
+      if (!dateSet[r.d]) { dateSet[r.d] = true; dates.push(r.d); }
+    });
+    dates.sort();
+
+    charts.c2 = new Chart(c2Canvas, {
+      type: 'line',
+      data: {
+        labels: dates.map(function(d) { return d.slice(5); }),
+        datasets: buckets.map(function(b) {
+          return {
+            label: b,
+            data: dates.map(function(d) {
+              var r = trendRows.find(function(x) { return x.d === d && x.b === b; });
+              return r ? r.c : null;
+            }),
+            borderColor: BC[b],
+            backgroundColor: BC[b] + '22',
+            tension: 0.3,
+            pointRadius: 2,
+            borderWidth: 2
+          };
+        })
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { display: false } },
+          y: { title: { display: true, text: 'CVR %', color: '#6b7280' },
+               ticks: { color: '#6b7280' }, grid: { color: 'rgba(0,0,0,.06)' } }
+        }
+      }
+    });
+  }
+
+  /* ══════════════ Chart 3: Selected Experiment — Funnel Breakdown ══════════════ */
+  document.getElementById('funnelTitle').textContent =
+    'Experiment #' + selectedExp + ' \u2014 Full Funnel Breakdown by Bucket';
+
+  var funnelRows = expData.filter(function(r) { return r.e === selectedExp; });
+  var steps = ['Installs','FS Shown','OB Done','Login','Checkout','Orders','Payments'];
+
+  if (funnelRows.length > 0) {
+    charts.c3 = new Chart(document.getElementById('c3'), {
+      type: 'bar',
+      data: {
+        labels: steps,
+        datasets: buckets.map(function(b) {
+          var r = funnelRows.find(function(x) { return x.b === b; });
+          return {
+            label: b,
+            data: r ? [r.i, r.fs, r.ob, r.lo, r.ck, r.or, r.p] : [0,0,0,0,0,0,0],
+            backgroundColor: BC[b] + 'aa',
+            borderRadius: 3
+          };
+        })
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#374151', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { color: '#6b7280' }, grid: { display: false } },
+          y: { ticks: { color: '#6b7280', callback: function(v) { return U.fN(v); } },
+               grid: { color: 'rgba(0,0,0,.06)' } }
+        }
+      }
+    });
+  }
+
+  /* ══════════════ Table — All Experiments ══════════════ */
+  var tbl = document.getElementById('tbl');
+  tbl.textContent = '';
+
+  expData.forEach(function(r) {
+    var ctrl = expData.find(function(x) { return x.e === r.e && x.b === 'CONTROL'; });
+    var tr = document.createElement('tr');
+
+    /* Exp# */
+    var td0 = document.createElement('td');
+    td0.textContent = '#' + r.e;
+    tr.appendChild(td0);
+
+    /* Impact badge */
+    var td1 = document.createElement('td');
+    var badge = document.createElement('span');
+    badge.className = 'badge ' + (r.sp >= 0.5 ? 'badge-high' : r.sp >= 0.2 ? 'badge-med' : 'badge-low');
+    badge.textContent = r.sp.toFixed(2) + '%';
+    td1.appendChild(badge);
+    tr.appendChild(td1);
+
+    /* Bucket */
+    var td2 = document.createElement('td');
+    td2.style.color = BC[r.b];
+    td2.textContent = r.b;
+    tr.appendChild(td2);
+
+    /* Numeric cols: installs, ob, login, checkout, orders, payments */
+    [r.i, r.ob, r.lo, r.ck, r.or, r.p].forEach(function(v) {
+      var td = document.createElement('td');
+      td.textContent = U.fN(v);
+      tr.appendChild(td);
+    });
+
+    /* CVR */
+    var tdCvr = document.createElement('td');
+    var bld = document.createElement('b');
+    bld.textContent = r.cvr + '%';
+    tdCvr.appendChild(bld);
+    tr.appendChild(tdCvr);
+
+    /* vs CTRL */
+    var tdDiff = document.createElement('td');
+    if (r.b === 'CONTROL') {
+      tdDiff.textContent = '\u2014';
+    } else {
+      var delta = r.cvr - ctrl.cvr;
+      tdDiff.textContent = (delta > 0 ? '+' : '') + delta.toFixed(2) + '%';
+      tdDiff.className = delta > 0 ? 'winner' : 'loser';
+    }
+    tr.appendChild(tdDiff);
+
+    tbl.appendChild(tr);
+  });
+
+  /* ── Status indicator ── */
+  F.setStatus('Using embedded snapshot data', 'snapshot');
 }
-trendChart('c2',26);
-trendChart('c3',4);
 
-// Chart 4: Exp 26 funnel breakdown
-const e26=expData.filter(r=>r.e===26);
-const steps=['Installs','FS Shown','OB Done','Login','Checkout','Orders','Payments'];
-new Chart(document.getElementById('c4'),{type:'bar',data:{
-labels:steps,
-datasets:buckets.map(b=>{const r=e26.find(x=>x.b===b);return{label:b,data:[r.i,r.fs,r.ob,r.lo,r.ck,r.or,r.p],backgroundColor:BC[b]+'aa',borderRadius:3}})
-},options:{responsive:true,plugins:{legend:{labels:{color:'#374151',font:{size:11}}}},scales:{x:{ticks:{color:'#6b7280'},grid:{display:false}},y:{ticks:{color:'#6b7280',callback:v=>fN(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
-
-// Table
-const tbl=document.getElementById('tbl');
-expData.forEach(r=>{
-const ctrl=expData.find(x=>x.e===r.e&&x.b==='CONTROL');
-const diff=r.b==='CONTROL'?'—':(r.cvr-ctrl.cvr>0?'+':'')+(r.cvr-ctrl.cvr).toFixed(2)+'%';
-const cls=r.b==='CONTROL'?'':(r.cvr>ctrl.cvr?'winner':'loser');
-const badge=r.sp>=0.5?'badge-high':r.sp>=0.2?'badge-med':'badge-low';
-tbl.innerHTML+=`<tr><td>#${r.e}</td><td><span class="badge ${badge}">${r.sp.toFixed(2)}%</span></td><td style="color:${BC[r.b]}">${r.b}</td><td>${fN(r.i)}</td><td>${fN(r.ob)}</td><td>${fN(r.lo)}</td><td>${fN(r.ck)}</td><td>${fN(r.or)}</td><td>${fN(r.p)}</td><td><b>${r.cvr}%</b></td><td class="${cls}">${diff}</td></tr>`;
+/* ═══════════════════════════════════════════════
+   Initialize filters
+   ═══════════════════════════════════════════════ */
+var expOptions = [];
+var seenInit = {};
+EMBEDDED_expData.forEach(function(r) {
+  if (!seenInit[r.e]) { seenInit[r.e] = true; expOptions.push({ e: r.e, sp: r.sp }); }
 });
-</script></body></html>
+expOptions.sort(function(a, b) { return b.sp - a.sp; });
+
+F.init('abFilters', [
+  { type: 'select', key: 'experiment', label: 'Experiment',
+    options: expOptions.map(function(o) {
+      return { value: String(o.e), text: 'Exp #' + o.e + ' (' + o.sp.toFixed(2) + '% spread)' };
+    })
+  },
+  { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 }
+], renderDashboard);
+
+/* first render */
+renderDashboard(F.getState());
+</script>
+</body></html>

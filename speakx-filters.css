@@ -1,0 +1,166 @@
+/* ═══════════════════════════════════════════════
+   SpeakX Dashboards — Filter Bar Styles
+   Matches the SpeakX brand light theme
+   ═══════════════════════════════════════════════ */
+
+.spx-filters-container {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+
+.spx-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.spx-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.spx-filter-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #ea580c;
+}
+
+.spx-input {
+  font-family: 'Figtree', -apple-system, sans-serif;
+  font-size: 13px;
+  padding: 7px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.spx-input:focus {
+  border-color: #ff4d00;
+  box-shadow: 0 0 0 3px rgba(255,77,0,0.1);
+}
+.spx-input:hover {
+  border-color: #fed7aa;
+}
+
+.spx-select {
+  min-width: 140px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+.spx-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.spx-date-inputs .spx-input {
+  width: 140px;
+}
+.spx-date-sep {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Chip (multi-select toggle) buttons */
+.spx-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.spx-chip {
+  font-family: 'Figtree', -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.spx-chip:hover {
+  border-color: #fed7aa;
+  color: #ea580c;
+}
+.spx-chip.active {
+  background: rgba(255,77,0,0.08);
+  border-color: rgba(255,77,0,0.3);
+  color: #ea580c;
+  font-weight: 600;
+}
+
+/* Refresh button */
+.spx-filter-actions {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+.spx-btn-refresh {
+  font-family: 'Figtree', -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid #ff4d00;
+  background: #ff4d00;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.spx-btn-refresh:hover {
+  background: #e04500;
+  box-shadow: 0 2px 8px rgba(255,77,0,0.25);
+}
+.spx-btn-refresh:active {
+  transform: scale(0.97);
+}
+
+/* Data status indicator */
+.spx-data-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 8px;
+  padding-left: 2px;
+}
+.spx-status-dot {
+  font-size: 10px;
+}
+.spx-status-live { color: #16a34a; }
+.spx-status-snapshot { color: #d97706; }
+.spx-status-loading { color: #6b7280; }
+.spx-status-error { color: #dc2626; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .spx-filter-bar {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .spx-filter-actions {
+    margin-left: 0;
+  }
+  .spx-date-inputs .spx-input {
+    width: 120px;
+  }
+}

@@ -5,6 +5,7 @@
 <title>SpeakX Cohort Deep-Dive</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="speakx-filters.css" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff7ed;color:#111827;min-height:100vh}
@@ -32,45 +33,21 @@ tr:hover td{background:rgba(255,120,16,.04)}
 .insight{background:#fff;border:1px solid #fed7aa;border-radius:14px;padding:20px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .insight h3{color:#ea580c;font-size:14px;margin-bottom:10px}
 .insight p{font-size:13px;line-height:1.7;color:#374151}
+@media(max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="hdr"><h1>SpeakX Cohort Deep-Dive</h1><p>Trial-to-Monthly Conversion &bull; Green Cohort Analysis &bull; Retention &amp; Engagement</p></div>
 <div class="wrap">
-<!-- KPIs -->
-<div class="kpi-row">
-<div class="kpi"><div class="v">56.3%</div><div class="l">Trial→Monthly CVR</div><div class="d">Jan '26 cohorts</div></div>
-<div class="kpi"><div class="v">66.7%</div><div class="l">Green Cohort CVR</div><div class="d">vs 50.4% Non-Green</div></div>
-<div class="kpi"><div class="v">35.5%</div><div class="l">Green Cohort Share</div><div class="d">Jan '26 avg</div></div>
-<div class="kpi"><div class="v">2.9</div><div class="l">Avg Practice Days</div><div class="d">Trial period (7d)</div></div>
+<div class="spx-filters-container" id="filters"></div>
+<div id="app"></div>
 </div>
 
-<!-- Key Insight -->
-<div class="insight">
-<h3>Key Insight</h3>
-<p>Green cohort users (those who practice 3+ days during trial) convert to monthly at <strong>66.7%</strong> vs <strong>50.4%</strong> for non-green — a <strong>16.3pp gap</strong>. Green share peaked at 37.7% (Jan 5) but has since declined to ~30%. Each 1pp increase in green share lifts blended CVR by ~0.16pp. Prioritizing engagement during the trial window is the highest-leverage retention lever.</p>
-</div>
-
-<!-- Charts Row 1 -->
-<div class="grid">
-<div class="card"><h3>Trial → Monthly Conversion: Green vs Non-Green</h3><canvas id="c1"></canvas></div>
-<div class="card"><h3>Green Cohort Share (% of Trials)</h3><canvas id="c2"></canvas></div>
-</div>
-<!-- Charts Row 2 -->
-<div class="grid">
-<div class="card"><h3>Monthly Subscriber Retention (Feb 2026 Snapshot)</h3><canvas id="c3"></canvas></div>
-<div class="card"><h3>Engagement Decay: First 7 Days After Monthly Payment</h3><canvas id="c4"></canvas></div>
-</div>
-
-<!-- Cohort Table -->
-<div class="card full" style="margin-bottom:24px">
-<h3>Weekly Trial Cohort Performance</h3>
-<div class="tbl-wrap"><table id="tbl"><thead><tr><th>Week</th><th>Trial Users</th><th>Green Users</th><th>Green %</th><th>Avg Practice Days</th><th>Avg D0 Lessons</th><th>Green CVR</th><th>Non-Green CVR</th><th>Gap</th></tr></thead><tbody></tbody></table></div>
-</div>
-</div>
-
+<script src="config.js"></script>
+<script src="speakx-common.js"></script>
 <script>
-const gc=[
+// ═══ EMBEDDED SNAPSHOT DATA ═══
+var EMBEDDED_gc=[
 {w:'Dec 1',gT:9013,gC:5555,nT:21213,nC:8775},{w:'Dec 8',gT:6877,gC:4555,nT:14496,nC:6939},
 {w:'Dec 15',gT:7540,gC:5076,nT:15440,nC:7778},{w:'Dec 22',gT:6980,gC:4636,nT:13234,nC:7018},
 {w:'Dec 29',gT:7519,gC:4960,nT:13394,nC:6969},{w:'Jan 5',gT:7920,gC:5218,nT:13096,nC:6931},
@@ -78,7 +55,8 @@ const gc=[
 {w:'Jan 26',gT:5488,gC:3791,nT:10756,nC:5360},{w:'Feb 2',gT:5634,gC:3903,nT:11796,nC:5812},
 {w:'Feb 9',gT:5340,gC:3575,nT:10897,nC:5397},{w:'Feb 16',gT:5778,gC:3776,nT:11814,nC:5503}
 ];
-const gt=[
+
+var EMBEDDED_gt=[
 {w:'Oct 6',t:13286,g:4009,gp:30.2,pd:2.65,dl:6.5},{w:'Oct 13',t:12024,g:3354,gp:27.9,pd:2.53,dl:6.4},
 {w:'Oct 20',t:12954,g:4082,gp:31.5,pd:2.61,dl:6.7},{w:'Oct 27',t:26247,g:7954,gp:30.3,pd:2.59,dl:6.7},
 {w:'Nov 3',t:21963,g:6743,gp:30.7,pd:2.62,dl:6.4},{w:'Nov 10',t:26827,g:7397,gp:27.6,pd:2.50,dl:6.1},
@@ -91,45 +69,184 @@ const gt=[
 {w:'Feb 9',t:16237,g:5340,gp:32.9,pd:2.86,dl:6.2},{w:'Feb 16',t:17592,g:5778,gp:32.8,pd:2.88,dl:6.2},
 {w:'Feb 23',t:12926,g:3856,gp:29.8,pd:2.66,dl:6.0}
 ];
-const ret=[{l:'M1',u:95246},{l:'M2',u:66849},{l:'M3',u:42457},{l:'M4',u:21322},{l:'M5',u:15117},{l:'M6',u:15865},{l:'M7+',u:52918}];
-const eng={open:[47,38.5,33.6,31.1,28.5,26.7,25.1],les:[28.1,23.2,19.7,17.6,0,0,13.5],wOpen:[71.9,49.3,35.4,27.1]};
-const dx={font:{family:"'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif"}};
-Chart.defaults.color='#6b7280';Chart.defaults.font.family=dx.font.family;
 
-// C1: Green vs Non-Green CVR
-new Chart(document.getElementById('c1'),{type:'line',data:{labels:gc.map(r=>r.w),datasets:[
-{label:'Green CVR %',data:gc.map(r=>+(100*r.gC/r.gT).toFixed(1)),borderColor:'#22c55e',backgroundColor:'#22c55e20',tension:.3,fill:true,pointRadius:3},
-{label:'Non-Green CVR %',data:gc.map(r=>+(100*r.nC/r.nT).toFixed(1)),borderColor:'#ef4444',backgroundColor:'#ef444420',tension:.3,fill:true,pointRadius:3}
-]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}},scales:{y:{min:35,max:75,ticks:{callback:v=>v+'%',color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
+var EMBEDDED_ret=[{l:'M1',u:95246},{l:'M2',u:66849},{l:'M3',u:42457},{l:'M4',u:21322},{l:'M5',u:15117},{l:'M6',u:15865},{l:'M7+',u:52918}];
+var EMBEDDED_eng={open:[47,38.5,33.6,31.1,28.5,26.7,25.1],les:[28.1,23.2,19.7,17.6,16,14.5,13.5],wOpen:[71.9,49.3,35.4,27.1]};
 
-// C2: Green Share Trend
-new Chart(document.getElementById('c2'),{type:'line',data:{labels:gt.map(r=>r.w),datasets:[
-{label:'Green %',data:gt.map(r=>r.gp),borderColor:'#ff4d00',backgroundColor:'#ff4d0020',tension:.3,fill:true,pointRadius:2,borderWidth:2.5},
-{label:'Avg Practice Days',data:gt.map(r=>r.pd),borderColor:'#f97316',borderDash:[5,5],tension:.3,yAxisID:'y2',pointRadius:0,borderWidth:2}
-]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}},scales:{y:{min:24,max:40,ticks:{callback:v=>v+'%',color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},y2:{position:'right',min:2.2,max:3.2,ticks:{callback:v=>v+'d',color:'#6b7280'},grid:{display:false}},x:{grid:{display:false},ticks:{maxRotation:45,font:{size:9},color:'#6b7280'}}}}});
+// ═══ HELPERS ═══
+var U = window.SPEAKX.Utils;
+var charts = {};
+Chart.defaults.color='#6b7280';
+Chart.defaults.font.family="'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 
-// C3: Retention Waterfall
-new Chart(document.getElementById('c3'),{type:'bar',data:{labels:ret.map(r=>r.l),datasets:[{
-label:'Active Users',data:ret.map(r=>r.u),backgroundColor:ret.map((_,i)=>{const c=['#ff4d00','#FF7810','#f97316','#fb923c','#fdba74','#fed7aa','#ffedd5'];return c[i]}),
-borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const pct=(100*ctx.raw/ret[0].u).toFixed(1);return ctx.raw.toLocaleString()+' users ('+pct+'% of M1)'}}}},scales:{y:{ticks:{callback:v=>(v/1000)+'K',color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
+// ═══ RENDER DASHBOARD ═══
+function renderDashboard(filters) {
+    var gc = EMBEDDED_gc;
+    var gt = EMBEDDED_gt;
+    var ret = EMBEDDED_ret;
+    var eng = EMBEDDED_eng;
 
-// C4: Engagement Decay
-new Chart(document.getElementById('c4'),{type:'line',data:{labels:['D0','D1','D2','D3','D4','D5','D6'],datasets:[
-{label:'App Open %',data:eng.open,borderColor:'#FF7810',backgroundColor:'#FF781030',tension:.3,fill:true,pointRadius:4,borderWidth:2.5},
-{label:'Lesson Attempt %',data:[28.1,23.2,19.7,17.6,16,14.5,13.5],borderColor:'#22c55e',backgroundColor:'#22c55e20',tension:.3,fill:true,pointRadius:4,borderWidth:2.5}
-]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}},scales:{y:{min:0,max:55,ticks:{callback:v=>v+'%',color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
+    // Destroy charts
+    Object.keys(charts).forEach(function(k) { charts[k] = U.destroyChart(charts[k]); });
 
-// Table
-const gMap=new Map();gc.forEach(r=>{gMap.set(r.w,{gc:+(100*r.gC/r.gT).toFixed(1),nc:+(100*r.nC/r.nT).toFixed(1)})});
-const tb=document.querySelector('#tbl tbody');
-gt.forEach(r=>{const tr=document.createElement('tr');const m=gMap.get(r.w);
-const gCvr=m?m.gc:'-';const nCvr=m?m.nc:'-';const gap=m?(m.gc-m.nc).toFixed(1):'-';
-const gpCls=r.gp>=35?'b-green':'b-red';
-tr.innerHTML=`<td>${r.w}</td><td>${r.t.toLocaleString()}</td><td>${r.g.toLocaleString()}</td>
-<td><span class="badge ${gpCls}">${r.gp}%</span></td><td>${r.pd}</td><td>${r.dl}</td>
-<td style="color:#22c55e;font-weight:600">${gCvr}%</td><td style="color:#ef4444">${nCvr}%</td>
-<td style="color:#f97316;font-weight:600">${gap!=='-'?'+'+gap+'pp':'-'}</td>`;
-tb.appendChild(tr)});
+    var app = document.getElementById('app');
+    app.textContent = '';
+
+    // ── KPIs ──
+    // Compute from latest data
+    var latestGt = gt[gt.length - 1];
+    var janCohorts = gc.filter(function(r) { return r.w.indexOf('Jan') === 0; });
+    var janGreenCVR = 0, janNonGreenCVR = 0, janBlendedCVR = 0;
+    if (janCohorts.length > 0) {
+        var tGT = 0, tGC = 0, tNT = 0, tNC = 0;
+        janCohorts.forEach(function(r) { tGT += r.gT; tGC += r.gC; tNT += r.nT; tNC += r.nC; });
+        janGreenCVR = tGT > 0 ? (tGC / tGT * 100).toFixed(1) : 0;
+        janNonGreenCVR = tNT > 0 ? (tNC / tNT * 100).toFixed(1) : 0;
+        janBlendedCVR = (tGT + tNT) > 0 ? ((tGC + tNC) / (tGT + tNT) * 100).toFixed(1) : 0;
+    }
+    var janGreenShare = 0;
+    var janGtCohorts = gt.filter(function(r) { return r.w.indexOf('Jan') === 0; });
+    if (janGtCohorts.length > 0) {
+        janGreenShare = (janGtCohorts.reduce(function(a,r){return a+r.gp},0) / janGtCohorts.length).toFixed(1);
+    }
+    var avgPd = gt.length > 0 ? (gt.reduce(function(a,r){return a+r.pd},0) / gt.length).toFixed(1) : 0;
+
+    var kpiRow = document.createElement('div'); kpiRow.className = 'kpi-row';
+    [{v:janBlendedCVR+'%',l:'Trial\u2192Monthly CVR',d:"Jan '26 cohorts"},
+     {v:janGreenCVR+'%',l:'Green Cohort CVR',d:'vs '+janNonGreenCVR+'% Non-Green'},
+     {v:janGreenShare+'%',l:'Green Cohort Share',d:"Jan '26 avg"},
+     {v:avgPd,l:'Avg Practice Days',d:'Trial period (7d)'}
+    ].forEach(function(k) {
+        var div = document.createElement('div'); div.className = 'kpi';
+        var v = document.createElement('div'); v.className = 'v'; v.textContent = k.v;
+        var l = document.createElement('div'); l.className = 'l'; l.textContent = k.l;
+        var d = document.createElement('div'); d.className = 'd'; d.textContent = k.d;
+        div.appendChild(v); div.appendChild(l); div.appendChild(d);
+        kpiRow.appendChild(div);
+    });
+    app.appendChild(kpiRow);
+
+    // ── Key Insight ──
+    var insight = document.createElement('div'); insight.className = 'insight';
+    var iH = document.createElement('h3'); iH.textContent = 'Key Insight';
+    var iP = document.createElement('p');
+    iP.textContent = 'Green cohort users (those who practice 3+ days during trial) convert to monthly at '
+        + janGreenCVR + '% vs ' + janNonGreenCVR + '% for non-green \u2014 a '
+        + (janGreenCVR - janNonGreenCVR).toFixed(1) + 'pp gap. Prioritizing engagement during the trial window is the highest-leverage retention lever.';
+    insight.appendChild(iH); insight.appendChild(iP);
+    app.appendChild(insight);
+
+    // ── Charts Row 1 ──
+    var grid1 = document.createElement('div'); grid1.className = 'grid';
+    var card1 = document.createElement('div'); card1.className = 'card';
+    var h1 = document.createElement('h3'); h1.textContent = 'Trial \u2192 Monthly Conversion: Green vs Non-Green';
+    var cvs1 = document.createElement('canvas');
+    card1.appendChild(h1); card1.appendChild(cvs1);
+
+    var card2 = document.createElement('div'); card2.className = 'card';
+    var h2 = document.createElement('h3'); h2.textContent = 'Green Cohort Share (% of Trials)';
+    var cvs2 = document.createElement('canvas');
+    card2.appendChild(h2); card2.appendChild(cvs2);
+    grid1.appendChild(card1); grid1.appendChild(card2);
+    app.appendChild(grid1);
+
+    charts.c1 = new Chart(cvs1, {type:'line', data:{labels:gc.map(function(r){return r.w}), datasets:[
+        {label:'Green CVR %', data:gc.map(function(r){return +(100*r.gC/r.gT).toFixed(1)}), borderColor:'#22c55e', backgroundColor:'#22c55e20', tension:.3, fill:true, pointRadius:3},
+        {label:'Non-Green CVR %', data:gc.map(function(r){return +(100*r.nC/r.nT).toFixed(1)}), borderColor:'#ef4444', backgroundColor:'#ef444420', tension:.3, fill:true, pointRadius:3}
+    ]}, options:{responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}}, scales:{y:{min:35,max:75,ticks:{callback:function(v){return v+'%'},color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
+
+    charts.c2 = new Chart(cvs2, {type:'line', data:{labels:gt.map(function(r){return r.w}), datasets:[
+        {label:'Green %', data:gt.map(function(r){return r.gp}), borderColor:'#ff4d00', backgroundColor:'#ff4d0020', tension:.3, fill:true, pointRadius:2, borderWidth:2.5},
+        {label:'Avg Practice Days', data:gt.map(function(r){return r.pd}), borderColor:'#f97316', borderDash:[5,5], tension:.3, yAxisID:'y2', pointRadius:0, borderWidth:2}
+    ]}, options:{responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}}, scales:{y:{min:24,max:40,ticks:{callback:function(v){return v+'%'},color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},y2:{position:'right',min:2.2,max:3.2,ticks:{callback:function(v){return v+'d'},color:'#6b7280'},grid:{display:false}},x:{grid:{display:false},ticks:{maxRotation:45,font:{size:9},color:'#6b7280'}}}}});
+
+    // ── Charts Row 2 ──
+    var grid2 = document.createElement('div'); grid2.className = 'grid';
+    var card3 = document.createElement('div'); card3.className = 'card';
+    var h3 = document.createElement('h3'); h3.textContent = 'Monthly Subscriber Retention (Feb 2026 Snapshot)';
+    var cvs3 = document.createElement('canvas');
+    card3.appendChild(h3); card3.appendChild(cvs3);
+
+    var card4 = document.createElement('div'); card4.className = 'card';
+    var h4 = document.createElement('h3'); h4.textContent = 'Engagement Decay: First 7 Days After Monthly Payment';
+    var cvs4 = document.createElement('canvas');
+    card4.appendChild(h4); card4.appendChild(cvs4);
+    grid2.appendChild(card3); grid2.appendChild(card4);
+    app.appendChild(grid2);
+
+    charts.c3 = new Chart(cvs3, {type:'bar', data:{labels:ret.map(function(r){return r.l}), datasets:[{
+        label:'Active Users', data:ret.map(function(r){return r.u}),
+        backgroundColor:['#ff4d00','#FF7810','#f97316','#fb923c','#fdba74','#fed7aa','#ffedd5'],
+        borderRadius:6, borderSkipped:false
+    }]}, options:{responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var pct=(100*ctx.raw/ret[0].u).toFixed(1);return ctx.raw.toLocaleString()+' users ('+pct+'% of M1)'}}}}, scales:{y:{ticks:{callback:function(v){return (v/1000)+'K'},color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
+
+    charts.c4 = new Chart(cvs4, {type:'line', data:{labels:['D0','D1','D2','D3','D4','D5','D6'], datasets:[
+        {label:'App Open %', data:eng.open, borderColor:'#FF7810', backgroundColor:'#FF781030', tension:.3, fill:true, pointRadius:4, borderWidth:2.5},
+        {label:'Lesson Attempt %', data:eng.les, borderColor:'#22c55e', backgroundColor:'#22c55e20', tension:.3, fill:true, pointRadius:4, borderWidth:2.5}
+    ]}, options:{responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}}, scales:{y:{min:0,max:55,ticks:{callback:function(v){return v+'%'},color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
+
+    // ── Cohort Table ──
+    var tblCard = document.createElement('div'); tblCard.className = 'card full'; tblCard.style.marginBottom = '24px';
+    var h5 = document.createElement('h3'); h5.textContent = 'Weekly Trial Cohort Performance';
+    tblCard.appendChild(h5);
+    var tblWrap = document.createElement('div'); tblWrap.className = 'tbl-wrap';
+    var tbl = document.createElement('table');
+    var thead = document.createElement('thead');
+    var hrow = document.createElement('tr');
+    ['Week','Trial Users','Green Users','Green %','Avg Practice Days','Avg D0 Lessons','Green CVR','Non-Green CVR','Gap'].forEach(function(h) {
+        var th = document.createElement('th'); th.textContent = h; hrow.appendChild(th);
+    });
+    thead.appendChild(hrow); tbl.appendChild(thead);
+
+    var gMap = new Map();
+    gc.forEach(function(r) { gMap.set(r.w, {gc:+(100*r.gC/r.gT).toFixed(1), nc:+(100*r.nC/r.nT).toFixed(1)}); });
+
+    var tbody = document.createElement('tbody');
+    gt.forEach(function(r) {
+        var m = gMap.get(r.w);
+        var gCvr = m ? m.gc : '-';
+        var nCvr = m ? m.nc : '-';
+        var gap = m ? (m.gc - m.nc).toFixed(1) : '-';
+
+        var tr = document.createElement('tr');
+        var td1 = document.createElement('td'); td1.textContent = r.w;
+        var td2 = document.createElement('td'); td2.textContent = r.t.toLocaleString();
+        var td3 = document.createElement('td'); td3.textContent = r.g.toLocaleString();
+        var td4 = document.createElement('td');
+        var badge = document.createElement('span');
+        badge.className = 'badge ' + (r.gp >= 35 ? 'b-green' : 'b-red');
+        badge.textContent = r.gp + '%';
+        td4.appendChild(badge);
+        var td5 = document.createElement('td'); td5.textContent = r.pd;
+        var td6 = document.createElement('td'); td6.textContent = r.dl;
+        var td7 = document.createElement('td'); td7.textContent = gCvr + '%'; td7.style.color = '#22c55e'; td7.style.fontWeight = '600';
+        var td8 = document.createElement('td'); td8.textContent = nCvr + '%'; td8.style.color = '#ef4444';
+        var td9 = document.createElement('td'); td9.textContent = gap !== '-' ? '+' + gap + 'pp' : '-'; td9.style.color = '#f97316'; td9.style.fontWeight = '600';
+        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+        tr.appendChild(td5); tr.appendChild(td6); tr.appendChild(td7); tr.appendChild(td8); tr.appendChild(td9);
+        tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); tblWrap.appendChild(tbl); tblCard.appendChild(tblWrap);
+    app.appendChild(tblCard);
+
+    // Status
+    var cfg = window.SPEAKX.CONFIG;
+    if (cfg && cfg.REDASH_URL) {
+        window.SPEAKX.Filters.setStatus('Live data from Redash', 'live');
+    } else {
+        window.SPEAKX.Filters.setStatus('Snapshot data (Mar 2026) \xB7 Set REDASH_URL for live data', 'snapshot');
+    }
+}
+
+// ═══ INITIALIZE FILTERS ═══
+window.SPEAKX.Filters.init('filters', [
+    { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 120 }
+], function(state) {
+    renderDashboard(state);
+});
+
+// Initial render
+renderDashboard(window.SPEAKX.Filters.getState());
 </script>
 </body>
 </html>

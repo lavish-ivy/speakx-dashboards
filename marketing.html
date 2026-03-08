@@ -6,6 +6,7 @@
 <title>SpeakX · Marketing Performance</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="speakx-filters.css" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff7ed;color:#111827;min-height:100vh}
@@ -21,7 +22,7 @@ body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .kpi .delta.up{color:#16a34a}.kpi .delta.down{color:#dc2626}
 .card{background:#fff;border-radius:14px;padding:24px;margin-bottom:24px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .card h3{font-size:16px;font-weight:600;color:#111827;margin-bottom:16px}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{text-align:left;padding:10px 12px;border-bottom:2px solid #ff4d00;color:#ea580c;font-weight:600;font-size:11px;text-transform:uppercase}
 td{padding:9px 12px;border-bottom:1px solid #f3f4f6;color:#374151}
@@ -37,88 +38,277 @@ canvas{max-height:320px}
 <body>
 <div class="header">
   <h1>Marketing Performance</h1>
-  <p>Channel Mix · Language Segments · Revenue vs Installs &nbsp;|&nbsp; Last 30 days &amp; 12-week trend</p>
+  <p>Channel Mix · Language Segments · Revenue vs Installs</p>
 </div>
-<div class="container" id="app"></div>
+<div class="container">
+  <div class="spx-filters-container" id="filters"></div>
+  <div id="app"></div>
+</div>
 
+<script src="config.js"></script>
+<script src="speakx-common.js"></script>
 <script>
-const dailyChannel=[{"dt":"2026-02-03","channel_group":"Google","installs":9093,"payments":498,"cvr":5.48},{"dt":"2026-02-03","channel_group":"Meta","installs":12552,"payments":870,"cvr":6.93},{"dt":"2026-02-03","channel_group":"Organic","installs":2760,"payments":61,"cvr":2.21},{"dt":"2026-02-03","channel_group":"Other Paid","installs":6239,"payments":313,"cvr":5.02},{"dt":"2026-02-04","channel_group":"Google","installs":9838,"payments":559,"cvr":5.68},{"dt":"2026-02-04","channel_group":"Meta","installs":14255,"payments":979,"cvr":6.87},{"dt":"2026-02-04","channel_group":"Organic","installs":2761,"payments":67,"cvr":2.43},{"dt":"2026-02-04","channel_group":"Other Paid","installs":6539,"payments":264,"cvr":4.04},{"dt":"2026-02-05","channel_group":"Google","installs":10955,"payments":597,"cvr":5.45},{"dt":"2026-02-05","channel_group":"Meta","installs":13079,"payments":798,"cvr":6.1},{"dt":"2026-02-05","channel_group":"Organic","installs":2844,"payments":52,"cvr":1.83},{"dt":"2026-02-05","channel_group":"Other Paid","installs":6335,"payments":293,"cvr":4.63},{"dt":"2026-02-06","channel_group":"Google","installs":10016,"payments":574,"cvr":5.73},{"dt":"2026-02-06","channel_group":"Meta","installs":11087,"payments":814,"cvr":7.34},{"dt":"2026-02-06","channel_group":"Organic","installs":2674,"payments":67,"cvr":2.51},{"dt":"2026-02-06","channel_group":"Other Paid","installs":5813,"payments":227,"cvr":3.91},{"dt":"2026-02-07","channel_group":"Google","installs":10011,"payments":572,"cvr":5.71},{"dt":"2026-02-07","channel_group":"Meta","installs":9133,"payments":815,"cvr":8.92},{"dt":"2026-02-07","channel_group":"Organic","installs":2693,"payments":58,"cvr":2.15},{"dt":"2026-02-07","channel_group":"Other Paid","installs":5566,"payments":258,"cvr":4.64},{"dt":"2026-02-08","channel_group":"Google","installs":10430,"payments":609,"cvr":5.84},{"dt":"2026-02-08","channel_group":"Meta","installs":9673,"payments":850,"cvr":8.79},{"dt":"2026-02-08","channel_group":"Organic","installs":2570,"payments":60,"cvr":2.33},{"dt":"2026-02-08","channel_group":"Other Paid","installs":5940,"payments":286,"cvr":4.81},{"dt":"2026-02-09","channel_group":"Google","installs":9616,"payments":533,"cvr":5.54},{"dt":"2026-02-09","channel_group":"Meta","installs":9343,"payments":758,"cvr":8.11},{"dt":"2026-02-09","channel_group":"Organic","installs":2427,"payments":48,"cvr":1.98},{"dt":"2026-02-09","channel_group":"Other Paid","installs":5738,"payments":268,"cvr":4.67},{"dt":"2026-02-10","channel_group":"Google","installs":10237,"payments":593,"cvr":5.79},{"dt":"2026-02-10","channel_group":"Meta","installs":9666,"payments":797,"cvr":8.25},{"dt":"2026-02-10","channel_group":"Organic","installs":2474,"payments":63,"cvr":2.55},{"dt":"2026-02-10","channel_group":"Other Paid","installs":6027,"payments":292,"cvr":4.84},{"dt":"2026-02-11","channel_group":"Google","installs":10047,"payments":565,"cvr":5.62},{"dt":"2026-02-11","channel_group":"Meta","installs":9429,"payments":824,"cvr":8.74},{"dt":"2026-02-11","channel_group":"Organic","installs":2450,"payments":42,"cvr":1.71},{"dt":"2026-02-11","channel_group":"Other Paid","installs":5628,"payments":230,"cvr":4.09},{"dt":"2026-02-12","channel_group":"Google","installs":9921,"payments":573,"cvr":5.78},{"dt":"2026-02-12","channel_group":"Meta","installs":9479,"payments":833,"cvr":8.79},{"dt":"2026-02-12","channel_group":"Organic","installs":2542,"payments":56,"cvr":2.2},{"dt":"2026-02-12","channel_group":"Other Paid","installs":6081,"payments":278,"cvr":4.57},{"dt":"2026-02-13","channel_group":"Google","installs":8787,"payments":519,"cvr":5.91},{"dt":"2026-02-13","channel_group":"Meta","installs":7925,"payments":673,"cvr":8.49},{"dt":"2026-02-13","channel_group":"Organic","installs":2399,"payments":60,"cvr":2.5},{"dt":"2026-02-13","channel_group":"Other Paid","installs":6334,"payments":279,"cvr":4.4},{"dt":"2026-02-14","channel_group":"Google","installs":8524,"payments":508,"cvr":5.96},{"dt":"2026-02-14","channel_group":"Meta","installs":7896,"payments":688,"cvr":8.71},{"dt":"2026-02-14","channel_group":"Organic","installs":2276,"payments":49,"cvr":2.15},{"dt":"2026-02-14","channel_group":"Other Paid","installs":5568,"payments":280,"cvr":5.03},{"dt":"2026-02-15","channel_group":"Google","installs":8052,"payments":470,"cvr":5.84},{"dt":"2026-02-15","channel_group":"Meta","installs":7296,"payments":633,"cvr":8.68},{"dt":"2026-02-15","channel_group":"Organic","installs":2213,"payments":51,"cvr":2.3},{"dt":"2026-02-15","channel_group":"Other Paid","installs":5558,"payments":249,"cvr":4.48},{"dt":"2026-02-16","channel_group":"Google","installs":8171,"payments":489,"cvr":5.98},{"dt":"2026-02-16","channel_group":"Meta","installs":7191,"payments":582,"cvr":8.09},{"dt":"2026-02-16","channel_group":"Organic","installs":2303,"payments":52,"cvr":2.26},{"dt":"2026-02-16","channel_group":"Other Paid","installs":7029,"payments":282,"cvr":4.01},{"dt":"2026-02-17","channel_group":"Google","installs":9378,"payments":573,"cvr":6.11},{"dt":"2026-02-17","channel_group":"Meta","installs":7784,"payments":669,"cvr":8.59},{"dt":"2026-02-17","channel_group":"Organic","installs":2298,"payments":50,"cvr":2.18},{"dt":"2026-02-17","channel_group":"Other Paid","installs":8871,"payments":376,"cvr":4.24},{"dt":"2026-02-18","channel_group":"Google","installs":9927,"payments":544,"cvr":5.48},{"dt":"2026-02-18","channel_group":"Meta","installs":7173,"payments":616,"cvr":8.59},{"dt":"2026-02-18","channel_group":"Organic","installs":2429,"payments":47,"cvr":1.93},{"dt":"2026-02-18","channel_group":"Other Paid","installs":8845,"payments":345,"cvr":3.9},{"dt":"2026-02-19","channel_group":"Google","installs":10512,"payments":578,"cvr":5.5},{"dt":"2026-02-19","channel_group":"Meta","installs":7347,"payments":676,"cvr":9.2},{"dt":"2026-02-19","channel_group":"Organic","installs":2982,"payments":67,"cvr":2.25},{"dt":"2026-02-19","channel_group":"Other Paid","installs":7825,"payments":309,"cvr":3.95},{"dt":"2026-02-20","channel_group":"Google","installs":11270,"payments":703,"cvr":6.24},{"dt":"2026-02-20","channel_group":"Meta","installs":7255,"payments":649,"cvr":8.95},{"dt":"2026-02-20","channel_group":"Organic","installs":3257,"payments":50,"cvr":1.54},{"dt":"2026-02-20","channel_group":"Other Paid","installs":7550,"payments":332,"cvr":4.4},{"dt":"2026-02-21","channel_group":"Google","installs":17939,"payments":1380,"cvr":7.69},{"dt":"2026-02-21","channel_group":"Meta","installs":4852,"payments":326,"cvr":6.72},{"dt":"2026-02-21","channel_group":"Organic","installs":4094,"payments":123,"cvr":3},{"dt":"2026-02-21","channel_group":"Other Paid","installs":7937,"payments":363,"cvr":4.57},{"dt":"2026-02-22","channel_group":"Google","installs":21606,"payments":1450,"cvr":6.71},{"dt":"2026-02-22","channel_group":"Meta","installs":953,"payments":22,"cvr":2.31},{"dt":"2026-02-22","channel_group":"Organic","installs":4390,"payments":123,"cvr":2.8},{"dt":"2026-02-22","channel_group":"Other Paid","installs":7143,"payments":311,"cvr":4.35},{"dt":"2026-02-23","channel_group":"Google","installs":20686,"payments":1077,"cvr":5.21},{"dt":"2026-02-23","channel_group":"Meta","installs":8771,"payments":525,"cvr":5.99},{"dt":"2026-02-23","channel_group":"Organic","installs":4250,"payments":96,"cvr":2.26},{"dt":"2026-02-23","channel_group":"Other Paid","installs":9220,"payments":306,"cvr":3.32},{"dt":"2026-02-24","channel_group":"Google","installs":15826,"payments":721,"cvr":4.56},{"dt":"2026-02-24","channel_group":"Meta","installs":9573,"payments":594,"cvr":6.2},{"dt":"2026-02-24","channel_group":"Organic","installs":3546,"payments":61,"cvr":1.72},{"dt":"2026-02-24","channel_group":"Other Paid","installs":8346,"payments":269,"cvr":3.22},{"dt":"2026-02-25","channel_group":"Google","installs":13129,"payments":610,"cvr":4.65},{"dt":"2026-02-25","channel_group":"Meta","installs":6060,"payments":439,"cvr":7.24},{"dt":"2026-02-25","channel_group":"Organic","installs":3509,"payments":53,"cvr":1.51},{"dt":"2026-02-25","channel_group":"Other Paid","installs":8030,"payments":290,"cvr":3.61},{"dt":"2026-02-26","channel_group":"Google","installs":10348,"payments":477,"cvr":4.61},{"dt":"2026-02-26","channel_group":"Meta","installs":5518,"payments":424,"cvr":7.68},{"dt":"2026-02-26","channel_group":"Organic","installs":3463,"payments":41,"cvr":1.18},{"dt":"2026-02-26","channel_group":"Other Paid","installs":7161,"payments":236,"cvr":3.3},{"dt":"2026-02-27","channel_group":"Google","installs":11994,"payments":494,"cvr":4.12},{"dt":"2026-02-27","channel_group":"Meta","installs":6353,"payments":470,"cvr":7.4},{"dt":"2026-02-27","channel_group":"Organic","installs":3728,"payments":55,"cvr":1.48},{"dt":"2026-02-27","channel_group":"Other Paid","installs":7984,"payments":259,"cvr":3.24},{"dt":"2026-02-28","channel_group":"Google","installs":9814,"payments":424,"cvr":4.32},{"dt":"2026-02-28","channel_group":"Meta","installs":6800,"payments":464,"cvr":6.82},{"dt":"2026-02-28","channel_group":"Organic","installs":3713,"payments":63,"cvr":1.7},{"dt":"2026-02-28","channel_group":"Other Paid","installs":7997,"payments":247,"cvr":3.09},{"dt":"2026-03-01","channel_group":"Google","installs":7166,"payments":352,"cvr":4.91},{"dt":"2026-03-01","channel_group":"Meta","installs":6103,"payments":409,"cvr":6.7},{"dt":"2026-03-01","channel_group":"Organic","installs":3209,"payments":52,"cvr":1.62},{"dt":"2026-03-01","channel_group":"Other Paid","installs":7018,"payments":599,"cvr":8.54},{"dt":"2026-03-02","channel_group":"Google","installs":6987,"payments":345,"cvr":4.94},{"dt":"2026-03-02","channel_group":"Meta","installs":6955,"payments":386,"cvr":5.55},{"dt":"2026-03-02","channel_group":"Organic","installs":4093,"payments":51,"cvr":1.25},{"dt":"2026-03-02","channel_group":"Other Paid","installs":7738,"payments":335,"cvr":4.33},{"dt":"2026-03-03","channel_group":"Google","installs":9824,"payments":473,"cvr":4.81},{"dt":"2026-03-03","channel_group":"Meta","installs":9363,"payments":558,"cvr":5.96},{"dt":"2026-03-03","channel_group":"Organic","installs":6054,"payments":47,"cvr":0.78},{"dt":"2026-03-03","channel_group":"Other Paid","installs":7020,"payments":355,"cvr":5.06},{"dt":"2026-03-04","channel_group":"Google","installs":11505,"payments":610,"cvr":5.3},{"dt":"2026-03-04","channel_group":"Meta","installs":7935,"payments":470,"cvr":5.92},{"dt":"2026-03-04","channel_group":"Organic","installs":3261,"payments":58,"cvr":1.78},{"dt":"2026-03-04","channel_group":"Other Paid","installs":4429,"payments":210,"cvr":4.74}];
+// ═══ EMBEDDED SNAPSHOT DATA ═══
+var EMBEDDED_dailyChannel=[{"dt":"2026-02-03","channel_group":"Google","installs":9093,"payments":498,"cvr":5.48},{"dt":"2026-02-03","channel_group":"Meta","installs":12552,"payments":870,"cvr":6.93},{"dt":"2026-02-03","channel_group":"Organic","installs":2760,"payments":61,"cvr":2.21},{"dt":"2026-02-03","channel_group":"Other Paid","installs":6239,"payments":313,"cvr":5.02},{"dt":"2026-02-04","channel_group":"Google","installs":9838,"payments":559,"cvr":5.68},{"dt":"2026-02-04","channel_group":"Meta","installs":14255,"payments":979,"cvr":6.87},{"dt":"2026-02-04","channel_group":"Organic","installs":2761,"payments":67,"cvr":2.43},{"dt":"2026-02-04","channel_group":"Other Paid","installs":6539,"payments":264,"cvr":4.04},{"dt":"2026-02-05","channel_group":"Google","installs":10955,"payments":597,"cvr":5.45},{"dt":"2026-02-05","channel_group":"Meta","installs":13079,"payments":798,"cvr":6.1},{"dt":"2026-02-05","channel_group":"Organic","installs":2844,"payments":52,"cvr":1.83},{"dt":"2026-02-05","channel_group":"Other Paid","installs":6335,"payments":293,"cvr":4.63},{"dt":"2026-02-06","channel_group":"Google","installs":10016,"payments":574,"cvr":5.73},{"dt":"2026-02-06","channel_group":"Meta","installs":11087,"payments":814,"cvr":7.34},{"dt":"2026-02-06","channel_group":"Organic","installs":2674,"payments":67,"cvr":2.51},{"dt":"2026-02-06","channel_group":"Other Paid","installs":5813,"payments":227,"cvr":3.91},{"dt":"2026-02-07","channel_group":"Google","installs":10011,"payments":572,"cvr":5.71},{"dt":"2026-02-07","channel_group":"Meta","installs":9133,"payments":815,"cvr":8.92},{"dt":"2026-02-07","channel_group":"Organic","installs":2693,"payments":58,"cvr":2.15},{"dt":"2026-02-07","channel_group":"Other Paid","installs":5566,"payments":258,"cvr":4.64},{"dt":"2026-02-08","channel_group":"Google","installs":10430,"payments":609,"cvr":5.84},{"dt":"2026-02-08","channel_group":"Meta","installs":9673,"payments":850,"cvr":8.79},{"dt":"2026-02-08","channel_group":"Organic","installs":2570,"payments":60,"cvr":2.33},{"dt":"2026-02-08","channel_group":"Other Paid","installs":5940,"payments":286,"cvr":4.81},{"dt":"2026-02-09","channel_group":"Google","installs":9616,"payments":533,"cvr":5.54},{"dt":"2026-02-09","channel_group":"Meta","installs":9343,"payments":758,"cvr":8.11},{"dt":"2026-02-09","channel_group":"Organic","installs":2427,"payments":48,"cvr":1.98},{"dt":"2026-02-09","channel_group":"Other Paid","installs":5738,"payments":268,"cvr":4.67},{"dt":"2026-02-10","channel_group":"Google","installs":10237,"payments":593,"cvr":5.79},{"dt":"2026-02-10","channel_group":"Meta","installs":9666,"payments":797,"cvr":8.25},{"dt":"2026-02-10","channel_group":"Organic","installs":2474,"payments":63,"cvr":2.55},{"dt":"2026-02-10","channel_group":"Other Paid","installs":6027,"payments":292,"cvr":4.84},{"dt":"2026-02-11","channel_group":"Google","installs":10047,"payments":565,"cvr":5.62},{"dt":"2026-02-11","channel_group":"Meta","installs":9429,"payments":824,"cvr":8.74},{"dt":"2026-02-11","channel_group":"Organic","installs":2450,"payments":42,"cvr":1.71},{"dt":"2026-02-11","channel_group":"Other Paid","installs":5628,"payments":230,"cvr":4.09},{"dt":"2026-02-12","channel_group":"Google","installs":9921,"payments":573,"cvr":5.78},{"dt":"2026-02-12","channel_group":"Meta","installs":9479,"payments":833,"cvr":8.79},{"dt":"2026-02-12","channel_group":"Organic","installs":2542,"payments":56,"cvr":2.2},{"dt":"2026-02-12","channel_group":"Other Paid","installs":6081,"payments":278,"cvr":4.57},{"dt":"2026-02-13","channel_group":"Google","installs":8787,"payments":519,"cvr":5.91},{"dt":"2026-02-13","channel_group":"Meta","installs":7925,"payments":673,"cvr":8.49},{"dt":"2026-02-13","channel_group":"Organic","installs":2399,"payments":60,"cvr":2.5},{"dt":"2026-02-13","channel_group":"Other Paid","installs":6334,"payments":279,"cvr":4.4},{"dt":"2026-02-14","channel_group":"Google","installs":8524,"payments":508,"cvr":5.96},{"dt":"2026-02-14","channel_group":"Meta","installs":7896,"payments":688,"cvr":8.71},{"dt":"2026-02-14","channel_group":"Organic","installs":2276,"payments":49,"cvr":2.15},{"dt":"2026-02-14","channel_group":"Other Paid","installs":5568,"payments":280,"cvr":5.03},{"dt":"2026-02-15","channel_group":"Google","installs":8052,"payments":470,"cvr":5.84},{"dt":"2026-02-15","channel_group":"Meta","installs":7296,"payments":633,"cvr":8.68},{"dt":"2026-02-15","channel_group":"Organic","installs":2213,"payments":51,"cvr":2.3},{"dt":"2026-02-15","channel_group":"Other Paid","installs":5558,"payments":249,"cvr":4.48},{"dt":"2026-02-16","channel_group":"Google","installs":8171,"payments":489,"cvr":5.98},{"dt":"2026-02-16","channel_group":"Meta","installs":7191,"payments":582,"cvr":8.09},{"dt":"2026-02-16","channel_group":"Organic","installs":2303,"payments":52,"cvr":2.26},{"dt":"2026-02-16","channel_group":"Other Paid","installs":7029,"payments":282,"cvr":4.01},{"dt":"2026-02-17","channel_group":"Google","installs":9378,"payments":573,"cvr":6.11},{"dt":"2026-02-17","channel_group":"Meta","installs":7784,"payments":669,"cvr":8.59},{"dt":"2026-02-17","channel_group":"Organic","installs":2298,"payments":50,"cvr":2.18},{"dt":"2026-02-17","channel_group":"Other Paid","installs":8871,"payments":376,"cvr":4.24},{"dt":"2026-02-18","channel_group":"Google","installs":9927,"payments":544,"cvr":5.48},{"dt":"2026-02-18","channel_group":"Meta","installs":7173,"payments":616,"cvr":8.59},{"dt":"2026-02-18","channel_group":"Organic","installs":2429,"payments":47,"cvr":1.93},{"dt":"2026-02-18","channel_group":"Other Paid","installs":8845,"payments":345,"cvr":3.9},{"dt":"2026-02-19","channel_group":"Google","installs":10512,"payments":578,"cvr":5.5},{"dt":"2026-02-19","channel_group":"Meta","installs":7347,"payments":676,"cvr":9.2},{"dt":"2026-02-19","channel_group":"Organic","installs":2982,"payments":67,"cvr":2.25},{"dt":"2026-02-19","channel_group":"Other Paid","installs":7825,"payments":309,"cvr":3.95},{"dt":"2026-02-20","channel_group":"Google","installs":11270,"payments":703,"cvr":6.24},{"dt":"2026-02-20","channel_group":"Meta","installs":7255,"payments":649,"cvr":8.95},{"dt":"2026-02-20","channel_group":"Organic","installs":3257,"payments":50,"cvr":1.54},{"dt":"2026-02-20","channel_group":"Other Paid","installs":7550,"payments":332,"cvr":4.4},{"dt":"2026-02-21","channel_group":"Google","installs":17939,"payments":1380,"cvr":7.69},{"dt":"2026-02-21","channel_group":"Meta","installs":4852,"payments":326,"cvr":6.72},{"dt":"2026-02-21","channel_group":"Organic","installs":4094,"payments":123,"cvr":3},{"dt":"2026-02-21","channel_group":"Other Paid","installs":7937,"payments":363,"cvr":4.57},{"dt":"2026-02-22","channel_group":"Google","installs":21606,"payments":1450,"cvr":6.71},{"dt":"2026-02-22","channel_group":"Meta","installs":953,"payments":22,"cvr":2.31},{"dt":"2026-02-22","channel_group":"Organic","installs":4390,"payments":123,"cvr":2.8},{"dt":"2026-02-22","channel_group":"Other Paid","installs":7143,"payments":311,"cvr":4.35},{"dt":"2026-02-23","channel_group":"Google","installs":20686,"payments":1077,"cvr":5.21},{"dt":"2026-02-23","channel_group":"Meta","installs":8771,"payments":525,"cvr":5.99},{"dt":"2026-02-23","channel_group":"Organic","installs":4250,"payments":96,"cvr":2.26},{"dt":"2026-02-23","channel_group":"Other Paid","installs":9220,"payments":306,"cvr":3.32},{"dt":"2026-02-24","channel_group":"Google","installs":15826,"payments":721,"cvr":4.56},{"dt":"2026-02-24","channel_group":"Meta","installs":9573,"payments":594,"cvr":6.2},{"dt":"2026-02-24","channel_group":"Organic","installs":3546,"payments":61,"cvr":1.72},{"dt":"2026-02-24","channel_group":"Other Paid","installs":8346,"payments":269,"cvr":3.22},{"dt":"2026-02-25","channel_group":"Google","installs":13129,"payments":610,"cvr":4.65},{"dt":"2026-02-25","channel_group":"Meta","installs":6060,"payments":439,"cvr":7.24},{"dt":"2026-02-25","channel_group":"Organic","installs":3509,"payments":53,"cvr":1.51},{"dt":"2026-02-25","channel_group":"Other Paid","installs":8030,"payments":290,"cvr":3.61},{"dt":"2026-02-26","channel_group":"Google","installs":10348,"payments":477,"cvr":4.61},{"dt":"2026-02-26","channel_group":"Meta","installs":5518,"payments":424,"cvr":7.68},{"dt":"2026-02-26","channel_group":"Organic","installs":3463,"payments":41,"cvr":1.18},{"dt":"2026-02-26","channel_group":"Other Paid","installs":7161,"payments":236,"cvr":3.3},{"dt":"2026-02-27","channel_group":"Google","installs":11994,"payments":494,"cvr":4.12},{"dt":"2026-02-27","channel_group":"Meta","installs":6353,"payments":470,"cvr":7.4},{"dt":"2026-02-27","channel_group":"Organic","installs":3728,"payments":55,"cvr":1.48},{"dt":"2026-02-27","channel_group":"Other Paid","installs":7984,"payments":259,"cvr":3.24},{"dt":"2026-02-28","channel_group":"Google","installs":9814,"payments":424,"cvr":4.32},{"dt":"2026-02-28","channel_group":"Meta","installs":6800,"payments":464,"cvr":6.82},{"dt":"2026-02-28","channel_group":"Organic","installs":3713,"payments":63,"cvr":1.7},{"dt":"2026-02-28","channel_group":"Other Paid","installs":7997,"payments":247,"cvr":3.09},{"dt":"2026-03-01","channel_group":"Google","installs":7166,"payments":352,"cvr":4.91},{"dt":"2026-03-01","channel_group":"Meta","installs":6103,"payments":409,"cvr":6.7},{"dt":"2026-03-01","channel_group":"Organic","installs":3209,"payments":52,"cvr":1.62},{"dt":"2026-03-01","channel_group":"Other Paid","installs":7018,"payments":599,"cvr":8.54},{"dt":"2026-03-02","channel_group":"Google","installs":6987,"payments":345,"cvr":4.94},{"dt":"2026-03-02","channel_group":"Meta","installs":6955,"payments":386,"cvr":5.55},{"dt":"2026-03-02","channel_group":"Organic","installs":4093,"payments":51,"cvr":1.25},{"dt":"2026-03-02","channel_group":"Other Paid","installs":7738,"payments":335,"cvr":4.33},{"dt":"2026-03-03","channel_group":"Google","installs":9824,"payments":473,"cvr":4.81},{"dt":"2026-03-03","channel_group":"Meta","installs":9363,"payments":558,"cvr":5.96},{"dt":"2026-03-03","channel_group":"Organic","installs":6054,"payments":47,"cvr":0.78},{"dt":"2026-03-03","channel_group":"Other Paid","installs":7020,"payments":355,"cvr":5.06},{"dt":"2026-03-04","channel_group":"Google","installs":11505,"payments":610,"cvr":5.3},{"dt":"2026-03-04","channel_group":"Meta","installs":7935,"payments":470,"cvr":5.92},{"dt":"2026-03-04","channel_group":"Organic","installs":3261,"payments":58,"cvr":1.78},{"dt":"2026-03-04","channel_group":"Other Paid","installs":4429,"payments":210,"cvr":4.74}];
 
-const revenueDaily=[{"dt":"2026-02-03","trial_txns":2474,"trial_revenue":68236,"monthly_txns":6458,"monthly_revenue":1603992},{"dt":"2026-02-04","trial_txns":2620,"trial_revenue":72610,"monthly_txns":5287,"monthly_revenue":1303713},{"dt":"2026-02-05","trial_txns":2535,"trial_revenue":70005,"monthly_txns":5952,"monthly_revenue":1445798},{"dt":"2026-02-06","trial_txns":2396,"trial_revenue":66424,"monthly_txns":6108,"monthly_revenue":1475742},{"dt":"2026-02-07","trial_txns":2376,"trial_revenue":65674,"monthly_txns":6619,"monthly_revenue":1612731},{"dt":"2026-02-08","trial_txns":2585,"trial_revenue":71315,"monthly_txns":6154,"monthly_revenue":1472396},{"dt":"2026-02-09","trial_txns":2336,"trial_revenue":64534,"monthly_txns":6424,"monthly_revenue":1550126},{"dt":"2026-02-10","trial_txns":2476,"trial_revenue":68434,"monthly_txns":6229,"monthly_revenue":1477121},{"dt":"2026-02-11","trial_txns":2456,"trial_revenue":67914,"monthly_txns":6177,"monthly_revenue":1457323},{"dt":"2026-02-12","trial_txns":2503,"trial_revenue":69137,"monthly_txns":6104,"monthly_revenue":1416996},{"dt":"2026-02-13","trial_txns":2255,"trial_revenue":62385,"monthly_txns":5658,"monthly_revenue":1308492},{"dt":"2026-02-14","trial_txns":2213,"trial_revenue":61277,"monthly_txns":5544,"monthly_revenue":1294856},{"dt":"2026-02-15","trial_txns":2009,"trial_revenue":55741,"monthly_txns":5850,"monthly_revenue":1391550},{"dt":"2026-02-16","trial_txns":2086,"trial_revenue":57494,"monthly_txns":5298,"monthly_revenue":1243752},{"dt":"2026-02-17","trial_txns":2428,"trial_revenue":67043,"monthly_txns":5599,"monthly_revenue":1311801},{"dt":"2026-02-18","trial_txns":2272,"trial_revenue":62745,"monthly_txns":4777,"monthly_revenue":1093473},{"dt":"2026-02-19","trial_txns":2413,"trial_revenue":66727,"monthly_txns":5515,"monthly_revenue":1296685},{"dt":"2026-02-20","trial_txns":2495,"trial_revenue":68815,"monthly_txns":4973,"monthly_revenue":1162377},{"dt":"2026-02-21","trial_txns":3099,"trial_revenue":85971,"monthly_txns":5256,"monthly_revenue":1229644},{"dt":"2026-02-22","trial_txns":2818,"trial_revenue":77812,"monthly_txns":5004,"monthly_revenue":1154446},{"dt":"2026-02-23","trial_txns":2867,"trial_revenue":80253,"monthly_txns":5135,"monthly_revenue":1211115},{"dt":"2026-02-24","trial_txns":2406,"trial_revenue":71394,"monthly_txns":5283,"monthly_revenue":1216267},{"dt":"2026-02-25","trial_txns":2107,"trial_revenue":63433,"monthly_txns":5003,"monthly_revenue":1170547},{"dt":"2026-02-26","trial_txns":1771,"trial_revenue":53379,"monthly_txns":5330,"monthly_revenue":1243470},{"dt":"2026-02-27","trial_txns":1935,"trial_revenue":57346,"monthly_txns":5544,"monthly_revenue":1289506},{"dt":"2026-02-28","trial_txns":1851,"trial_revenue":52523,"monthly_txns":6257,"monthly_revenue":1455243},{"dt":"2026-03-01","trial_txns":1984,"trial_revenue":54946,"monthly_txns":5716,"monthly_revenue":1367834},{"dt":"2026-03-02","trial_txns":1652,"trial_revenue":45788,"monthly_txns":6484,"monthly_revenue":1585816},{"dt":"2026-03-03","trial_txns":2037,"trial_revenue":56393,"monthly_txns":6470,"monthly_revenue":1673980},{"dt":"2026-03-04","trial_txns":1921,"trial_revenue":52991,"monthly_txns":6977,"monthly_revenue":1807573}];
+var EMBEDDED_revenueDaily=[{"dt":"2026-02-03","trial_txns":2474,"trial_revenue":68236,"monthly_txns":6458,"monthly_revenue":1603992},{"dt":"2026-02-04","trial_txns":2620,"trial_revenue":72610,"monthly_txns":5287,"monthly_revenue":1303713},{"dt":"2026-02-05","trial_txns":2535,"trial_revenue":70005,"monthly_txns":5952,"monthly_revenue":1445798},{"dt":"2026-02-06","trial_txns":2396,"trial_revenue":66424,"monthly_txns":6108,"monthly_revenue":1475742},{"dt":"2026-02-07","trial_txns":2376,"trial_revenue":65674,"monthly_txns":6619,"monthly_revenue":1612731},{"dt":"2026-02-08","trial_txns":2585,"trial_revenue":71315,"monthly_txns":6154,"monthly_revenue":1472396},{"dt":"2026-02-09","trial_txns":2336,"trial_revenue":64534,"monthly_txns":6424,"monthly_revenue":1550126},{"dt":"2026-02-10","trial_txns":2476,"trial_revenue":68434,"monthly_txns":6229,"monthly_revenue":1477121},{"dt":"2026-02-11","trial_txns":2456,"trial_revenue":67914,"monthly_txns":6177,"monthly_revenue":1457323},{"dt":"2026-02-12","trial_txns":2503,"trial_revenue":69137,"monthly_txns":6104,"monthly_revenue":1416996},{"dt":"2026-02-13","trial_txns":2255,"trial_revenue":62385,"monthly_txns":5658,"monthly_revenue":1308492},{"dt":"2026-02-14","trial_txns":2213,"trial_revenue":61277,"monthly_txns":5544,"monthly_revenue":1294856},{"dt":"2026-02-15","trial_txns":2009,"trial_revenue":55741,"monthly_txns":5850,"monthly_revenue":1391550},{"dt":"2026-02-16","trial_txns":2086,"trial_revenue":57494,"monthly_txns":5298,"monthly_revenue":1243752},{"dt":"2026-02-17","trial_txns":2428,"trial_revenue":67043,"monthly_txns":5599,"monthly_revenue":1311801},{"dt":"2026-02-18","trial_txns":2272,"trial_revenue":62745,"monthly_txns":4777,"monthly_revenue":1093473},{"dt":"2026-02-19","trial_txns":2413,"trial_revenue":66727,"monthly_txns":5515,"monthly_revenue":1296685},{"dt":"2026-02-20","trial_txns":2495,"trial_revenue":68815,"monthly_txns":4973,"monthly_revenue":1162377},{"dt":"2026-02-21","trial_txns":3099,"trial_revenue":85971,"monthly_txns":5256,"monthly_revenue":1229644},{"dt":"2026-02-22","trial_txns":2818,"trial_revenue":77812,"monthly_txns":5004,"monthly_revenue":1154446},{"dt":"2026-02-23","trial_txns":2867,"trial_revenue":80253,"monthly_txns":5135,"monthly_revenue":1211115},{"dt":"2026-02-24","trial_txns":2406,"trial_revenue":71394,"monthly_txns":5283,"monthly_revenue":1216267},{"dt":"2026-02-25","trial_txns":2107,"trial_revenue":63433,"monthly_txns":5003,"monthly_revenue":1170547},{"dt":"2026-02-26","trial_txns":1771,"trial_revenue":53379,"monthly_txns":5330,"monthly_revenue":1243470},{"dt":"2026-02-27","trial_txns":1935,"trial_revenue":57346,"monthly_txns":5544,"monthly_revenue":1289506},{"dt":"2026-02-28","trial_txns":1851,"trial_revenue":52523,"monthly_txns":6257,"monthly_revenue":1455243},{"dt":"2026-03-01","trial_txns":1984,"trial_revenue":54946,"monthly_txns":5716,"monthly_revenue":1367834},{"dt":"2026-03-02","trial_txns":1652,"trial_revenue":45788,"monthly_txns":6484,"monthly_revenue":1585816},{"dt":"2026-03-03","trial_txns":2037,"trial_revenue":56393,"monthly_txns":6470,"monthly_revenue":1673980},{"dt":"2026-03-04","trial_txns":1921,"trial_revenue":52991,"monthly_txns":6977,"monthly_revenue":1807573}];
 
-const weeklyChannel=[{"week_start":"2025-12-08","channel_group":"Google","installs":69720,"payments":4180,"cvr":6},{"week_start":"2025-12-08","channel_group":"Meta","installs":38998,"payments":3724,"cvr":9.55},{"week_start":"2025-12-08","channel_group":"Organic","installs":10460,"payments":330,"cvr":3.15},{"week_start":"2025-12-08","channel_group":"Other Paid","installs":5519,"payments":11,"cvr":0.2},{"week_start":"2025-12-15","channel_group":"Google","installs":136074,"payments":8333,"cvr":6.12},{"week_start":"2025-12-15","channel_group":"Meta","installs":83302,"payments":7857,"cvr":9.43},{"week_start":"2025-12-15","channel_group":"Organic","installs":19116,"payments":686,"cvr":3.59},{"week_start":"2025-12-15","channel_group":"Other Paid","installs":10022,"payments":34,"cvr":0.34},{"week_start":"2025-12-22","channel_group":"Google","installs":122609,"payments":7131,"cvr":5.82},{"week_start":"2025-12-22","channel_group":"Meta","installs":77619,"payments":6696,"cvr":8.63},{"week_start":"2025-12-22","channel_group":"Organic","installs":17970,"payments":534,"cvr":2.97},{"week_start":"2025-12-22","channel_group":"Other Paid","installs":9169,"payments":36,"cvr":0.39},{"week_start":"2025-12-29","channel_group":"Google","installs":116394,"payments":6730,"cvr":5.78},{"week_start":"2025-12-29","channel_group":"Meta","installs":83645,"payments":7618,"cvr":9.11},{"week_start":"2025-12-29","channel_group":"Organic","installs":19178,"payments":560,"cvr":2.92},{"week_start":"2025-12-29","channel_group":"Other Paid","installs":8544,"payments":19,"cvr":0.22},{"week_start":"2026-01-05","channel_group":"Google","installs":119677,"payments":6699,"cvr":5.6},{"week_start":"2026-01-05","channel_group":"Meta","installs":84444,"payments":7702,"cvr":9.12},{"week_start":"2026-01-05","channel_group":"Organic","installs":19340,"payments":586,"cvr":3.03},{"week_start":"2026-01-05","channel_group":"Other Paid","installs":8567,"payments":29,"cvr":0.34},{"week_start":"2026-01-12","channel_group":"Google","installs":78387,"payments":4501,"cvr":5.74},{"week_start":"2026-01-12","channel_group":"Meta","installs":79201,"payments":6410,"cvr":8.09},{"week_start":"2026-01-12","channel_group":"Organic","installs":16761,"payments":460,"cvr":2.74},{"week_start":"2026-01-12","channel_group":"Other Paid","installs":8047,"payments":82,"cvr":1.02},{"week_start":"2026-01-19","channel_group":"Google","installs":65489,"payments":4026,"cvr":6.15},{"week_start":"2026-01-19","channel_group":"Meta","installs":73220,"payments":6816,"cvr":9.31},{"week_start":"2026-01-19","channel_group":"Organic","installs":18121,"payments":468,"cvr":2.58},{"week_start":"2026-01-19","channel_group":"Other Paid","installs":27345,"payments":650,"cvr":2.38},{"week_start":"2026-01-26","channel_group":"Google","installs":67495,"payments":3866,"cvr":5.73},{"week_start":"2026-01-26","channel_group":"Meta","installs":62009,"payments":5450,"cvr":8.79},{"week_start":"2026-01-26","channel_group":"Organic","installs":18647,"payments":403,"cvr":2.16},{"week_start":"2026-01-26","channel_group":"Other Paid","installs":38328,"payments":1945,"cvr":5.07},{"week_start":"2026-02-02","channel_group":"Google","installs":69676,"payments":3939,"cvr":5.65},{"week_start":"2026-02-02","channel_group":"Meta","installs":80058,"payments":5981,"cvr":7.47},{"week_start":"2026-02-02","channel_group":"Organic","installs":19165,"payments":436,"cvr":2.27},{"week_start":"2026-02-02","channel_group":"Other Paid","installs":41703,"payments":1920,"cvr":4.6},{"week_start":"2026-02-09","channel_group":"Google","installs":65184,"payments":3761,"cvr":5.77},{"week_start":"2026-02-09","channel_group":"Meta","installs":61034,"payments":5206,"cvr":8.53},{"week_start":"2026-02-09","channel_group":"Organic","installs":16781,"payments":369,"cvr":2.2},{"week_start":"2026-02-09","channel_group":"Other Paid","installs":40934,"payments":1876,"cvr":4.58},{"week_start":"2026-02-16","channel_group":"Google","installs":88803,"payments":5717,"cvr":6.44},{"week_start":"2026-02-16","channel_group":"Meta","installs":42555,"payments":3540,"cvr":8.32},{"week_start":"2026-02-16","channel_group":"Organic","installs":21753,"payments":512,"cvr":2.35},{"week_start":"2026-02-16","channel_group":"Other Paid","installs":55200,"payments":2318,"cvr":4.2},{"week_start":"2026-02-23","channel_group":"Google","installs":88963,"payments":4155,"cvr":4.67},{"week_start":"2026-02-23","channel_group":"Meta","installs":49178,"payments":3325,"cvr":6.76},{"week_start":"2026-02-23","channel_group":"Organic","installs":25418,"payments":421,"cvr":1.66},{"week_start":"2026-02-23","channel_group":"Other Paid","installs":55756,"payments":2206,"cvr":3.96}];
+var EMBEDDED_weeklyChannel=[{"week_start":"2025-12-08","channel_group":"Google","installs":69720,"payments":4180,"cvr":6},{"week_start":"2025-12-08","channel_group":"Meta","installs":38998,"payments":3724,"cvr":9.55},{"week_start":"2025-12-08","channel_group":"Organic","installs":10460,"payments":330,"cvr":3.15},{"week_start":"2025-12-08","channel_group":"Other Paid","installs":5519,"payments":11,"cvr":0.2},{"week_start":"2025-12-15","channel_group":"Google","installs":136074,"payments":8333,"cvr":6.12},{"week_start":"2025-12-15","channel_group":"Meta","installs":83302,"payments":7857,"cvr":9.43},{"week_start":"2025-12-15","channel_group":"Organic","installs":19116,"payments":686,"cvr":3.59},{"week_start":"2025-12-15","channel_group":"Other Paid","installs":10022,"payments":34,"cvr":0.34},{"week_start":"2025-12-22","channel_group":"Google","installs":122609,"payments":7131,"cvr":5.82},{"week_start":"2025-12-22","channel_group":"Meta","installs":77619,"payments":6696,"cvr":8.63},{"week_start":"2025-12-22","channel_group":"Organic","installs":17970,"payments":534,"cvr":2.97},{"week_start":"2025-12-22","channel_group":"Other Paid","installs":9169,"payments":36,"cvr":0.39},{"week_start":"2025-12-29","channel_group":"Google","installs":116394,"payments":6730,"cvr":5.78},{"week_start":"2025-12-29","channel_group":"Meta","installs":83645,"payments":7618,"cvr":9.11},{"week_start":"2025-12-29","channel_group":"Organic","installs":19178,"payments":560,"cvr":2.92},{"week_start":"2025-12-29","channel_group":"Other Paid","installs":8544,"payments":19,"cvr":0.22},{"week_start":"2026-01-05","channel_group":"Google","installs":119677,"payments":6699,"cvr":5.6},{"week_start":"2026-01-05","channel_group":"Meta","installs":84444,"payments":7702,"cvr":9.12},{"week_start":"2026-01-05","channel_group":"Organic","installs":19340,"payments":586,"cvr":3.03},{"week_start":"2026-01-05","channel_group":"Other Paid","installs":8567,"payments":29,"cvr":0.34},{"week_start":"2026-01-12","channel_group":"Google","installs":78387,"payments":4501,"cvr":5.74},{"week_start":"2026-01-12","channel_group":"Meta","installs":79201,"payments":6410,"cvr":8.09},{"week_start":"2026-01-12","channel_group":"Organic","installs":16761,"payments":460,"cvr":2.74},{"week_start":"2026-01-12","channel_group":"Other Paid","installs":8047,"payments":82,"cvr":1.02},{"week_start":"2026-01-19","channel_group":"Google","installs":65489,"payments":4026,"cvr":6.15},{"week_start":"2026-01-19","channel_group":"Meta","installs":73220,"payments":6816,"cvr":9.31},{"week_start":"2026-01-19","channel_group":"Organic","installs":18121,"payments":468,"cvr":2.58},{"week_start":"2026-01-19","channel_group":"Other Paid","installs":27345,"payments":650,"cvr":2.38},{"week_start":"2026-01-26","channel_group":"Google","installs":67495,"payments":3866,"cvr":5.73},{"week_start":"2026-01-26","channel_group":"Meta","installs":62009,"payments":5450,"cvr":8.79},{"week_start":"2026-01-26","channel_group":"Organic","installs":18647,"payments":403,"cvr":2.16},{"week_start":"2026-01-26","channel_group":"Other Paid","installs":38328,"payments":1945,"cvr":5.07},{"week_start":"2026-02-02","channel_group":"Google","installs":69676,"payments":3939,"cvr":5.65},{"week_start":"2026-02-02","channel_group":"Meta","installs":80058,"payments":5981,"cvr":7.47},{"week_start":"2026-02-02","channel_group":"Organic","installs":19165,"payments":436,"cvr":2.27},{"week_start":"2026-02-02","channel_group":"Other Paid","installs":41703,"payments":1920,"cvr":4.6},{"week_start":"2026-02-09","channel_group":"Google","installs":65184,"payments":3761,"cvr":5.77},{"week_start":"2026-02-09","channel_group":"Meta","installs":61034,"payments":5206,"cvr":8.53},{"week_start":"2026-02-09","channel_group":"Organic","installs":16781,"payments":369,"cvr":2.2},{"week_start":"2026-02-09","channel_group":"Other Paid","installs":40934,"payments":1876,"cvr":4.58},{"week_start":"2026-02-16","channel_group":"Google","installs":88803,"payments":5717,"cvr":6.44},{"week_start":"2026-02-16","channel_group":"Meta","installs":42555,"payments":3540,"cvr":8.32},{"week_start":"2026-02-16","channel_group":"Organic","installs":21753,"payments":512,"cvr":2.35},{"week_start":"2026-02-16","channel_group":"Other Paid","installs":55200,"payments":2318,"cvr":4.2},{"week_start":"2026-02-23","channel_group":"Google","installs":88963,"payments":4155,"cvr":4.67},{"week_start":"2026-02-23","channel_group":"Meta","installs":49178,"payments":3325,"cvr":6.76},{"week_start":"2026-02-23","channel_group":"Organic","installs":25418,"payments":421,"cvr":1.66},{"week_start":"2026-02-23","channel_group":"Other Paid","installs":55756,"payments":2206,"cvr":3.96}];
 
-const langData=[{"lang":"hi","installs":402642,"payments":25743,"cvr":6.39},{"lang":"mr","installs":49155,"payments":3849,"cvr":7.83},{"lang":"ta","installs":43694,"payments":3850,"cvr":8.81},{"lang":"te","installs":41030,"payments":3728,"cvr":9.09},{"lang":"kn","installs":37944,"payments":3426,"cvr":9.03},{"lang":"bn","installs":34763,"payments":2450,"cvr":7.05},{"lang":"or","installs":19086,"payments":1333,"cvr":6.98},{"lang":"gu","installs":16572,"payments":961,"cvr":5.8},{"lang":"ur","installs":12272,"payments":501,"cvr":4.08},{"lang":"ml","installs":10571,"payments":1296,"cvr":12.26},{"lang":"pa","installs":8507,"payments":463,"cvr":5.44},{"lang":"ne","installs":2283,"payments":133,"cvr":5.83}];
+var EMBEDDED_langData=[{"lang":"hi","installs":402642,"payments":25743,"cvr":6.39},{"lang":"mr","installs":49155,"payments":3849,"cvr":7.83},{"lang":"ta","installs":43694,"payments":3850,"cvr":8.81},{"lang":"te","installs":41030,"payments":3728,"cvr":9.09},{"lang":"kn","installs":37944,"payments":3426,"cvr":9.03},{"lang":"bn","installs":34763,"payments":2450,"cvr":7.05},{"lang":"or","installs":19086,"payments":1333,"cvr":6.98},{"lang":"gu","installs":16572,"payments":961,"cvr":5.8},{"lang":"ur","installs":12272,"payments":501,"cvr":4.08},{"lang":"ml","installs":10571,"payments":1296,"cvr":12.26},{"lang":"pa","installs":8507,"payments":463,"cvr":5.44},{"lang":"ne","installs":2283,"payments":133,"cvr":5.83}];
 
-// Helpers
-const fN=n=>n>=10000000?(n/10000000).toFixed(2)+'Cr':n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'K':n.toLocaleString('en-IN');
-const shortDate=s=>{const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})};
-const langNames={hi:'Hindi',mr:'Marathi',ta:'Tamil',te:'Telugu',kn:'Kannada',bn:'Bengali',or:'Odia',gu:'Gujarati',ur:'Urdu',ml:'Malayalam',pa:'Punjabi',ne:'Nepali'};
-const chColors={Google:'#4285f4',Meta:'#0081fb',Organic:'#22c55e','Other Paid':'#f97316'};
+// ═══ HELPERS ═══
+var U = window.SPEAKX.Utils;
+var FD = window.SPEAKX.FilterData;
+var charts = {};
+var langNames = {hi:'Hindi',mr:'Marathi',ta:'Tamil',te:'Telugu',kn:'Kannada',bn:'Bengali',or:'Odia',gu:'Gujarati',ur:'Urdu',ml:'Malayalam',pa:'Punjabi',ne:'Nepali'};
+var chColors = {Google:'#4285f4',Meta:'#0081fb',Organic:'#22c55e','Other Paid':'#f97316'};
+var channels = ['Google','Meta','Organic','Other Paid'];
 
-// Pivot daily channel
-const dates=[...new Set(dailyChannel.map(r=>r.dt))];
-const channels=['Google','Meta','Organic','Other Paid'];
-const pivot=(ch,field)=>dates.map(d=>{const r=dailyChannel.find(x=>x.dt===d&&x.channel_group===ch);return r?r[field]:0});
+// ═══ RENDER DASHBOARD ═══
+function renderDashboard(filters) {
+    // Filter daily data by date range
+    var dailyChannel = FD.byDateRange(EMBEDDED_dailyChannel, 'dt', filters.dateRange);
+    var revenueDaily = FD.byDateRange(EMBEDDED_revenueDaily, 'dt', filters.dateRange);
+    // Filter by channel
+    if (filters.channel && filters.channel !== 'all') {
+        dailyChannel = dailyChannel.filter(function(r) { return r.channel_group === filters.channel; });
+    }
+    var weeklyChannel = EMBEDDED_weeklyChannel;
+    var langData = EMBEDDED_langData;
 
-// Aggregate KPIs
-const totCh={};channels.forEach(c=>{totCh[c]={installs:0,payments:0};dailyChannel.filter(r=>r.channel_group===c).forEach(r=>{totCh[c].installs+=r.installs;totCh[c].payments+=r.payments})});
-const totInst=Object.values(totCh).reduce((a,v)=>a+v.installs,0);
-const totPay=Object.values(totCh).reduce((a,v)=>a+v.payments,0);
-const totRev=revenueDaily.reduce((a,r)=>a+r.trial_revenue+r.monthly_revenue,0);
-const totTrial=revenueDaily.reduce((a,r)=>a+r.trial_revenue,0);
-const l7rev=revenueDaily.slice(-7).reduce((a,r)=>a+r.trial_revenue+r.monthly_revenue,0);
-const p7rev=revenueDaily.slice(-14,-7).reduce((a,r)=>a+r.trial_revenue+r.monthly_revenue,0);
-const revD=p7rev?((l7rev-p7rev)/p7rev*100).toFixed(1):0;
+    // Destroy charts
+    Object.keys(charts).forEach(function(k) { charts[k] = U.destroyChart(charts[k]); });
 
-const app=document.getElementById('app');
+    // Pivot helpers
+    var dates = [];
+    var seen = {};
+    dailyChannel.forEach(function(r) { if (!seen[r.dt]) { seen[r.dt] = true; dates.push(r.dt); } });
+    var activeChannels = filters.channel && filters.channel !== 'all' ? [filters.channel] : channels;
+    var pivot = function(ch, field) {
+        return dates.map(function(d) {
+            var r = dailyChannel.find(function(x) { return x.dt === d && x.channel_group === ch; });
+            return r ? r[field] : 0;
+        });
+    };
 
-// KPIs
-let khtml='<div class="kpi-row">';
-[{l:'30-Day Installs',v:fN(totInst)},{l:'30-Day Payments',v:fN(totPay)},{l:'30-Day Revenue',v:'₹'+fN(totRev)},{l:'7-Day Revenue',v:'₹'+fN(l7rev),d:revD},{l:'Google CVR',v:(totCh.Google.payments/totCh.Google.installs*100).toFixed(1)+'%'},{l:'Meta CVR',v:(totCh.Meta.payments/totCh.Meta.installs*100).toFixed(1)+'%'},{l:'Organic CVR',v:(totCh.Organic.payments/totCh.Organic.installs*100).toFixed(1)+'%'},{l:'Trial Revenue Share',v:(totTrial/totRev*100).toFixed(1)+'%'}].forEach(k=>{
-  khtml+=`<div class="kpi"><div class="label">${k.l}</div><div class="value">${k.v}</div>${k.d?`<div class="delta ${k.d>=0?'up':'down'}">${k.d>=0?'▲':'▼'} ${Math.abs(k.d)}% WoW</div>`:''}  </div>`;
+    // Aggregate KPIs
+    var totCh = {};
+    activeChannels.forEach(function(c) {
+        totCh[c] = {installs:0, payments:0};
+        dailyChannel.filter(function(r) { return r.channel_group === c; }).forEach(function(r) {
+            totCh[c].installs += r.installs;
+            totCh[c].payments += r.payments;
+        });
+    });
+    var totInst = Object.values(totCh).reduce(function(a, v) { return a + v.installs; }, 0);
+    var totPay = Object.values(totCh).reduce(function(a, v) { return a + v.payments; }, 0);
+    var totRev = revenueDaily.reduce(function(a, r) { return a + r.trial_revenue + r.monthly_revenue; }, 0);
+    var totTrial = revenueDaily.reduce(function(a, r) { return a + r.trial_revenue; }, 0);
+    var l7rev = revenueDaily.slice(-7).reduce(function(a, r) { return a + r.trial_revenue + r.monthly_revenue; }, 0);
+    var p7rev = revenueDaily.slice(-14, -7).reduce(function(a, r) { return a + r.trial_revenue + r.monthly_revenue; }, 0);
+    var revD = p7rev ? ((l7rev - p7rev) / p7rev * 100).toFixed(1) : 0;
+
+    // Build DOM
+    var app = document.getElementById('app');
+    app.textContent = '';
+
+    // ── KPIs ──
+    var kpiRow = document.createElement('div');
+    kpiRow.className = 'kpi-row';
+    var kpiData = [
+        {l:'Period Installs', v:U.fN(totInst)},
+        {l:'Period Payments', v:U.fN(totPay)},
+        {l:'Period Revenue', v:'\u20B9' + U.fN(totRev)},
+        {l:'7-Day Revenue', v:'\u20B9' + U.fN(l7rev), d:revD}
+    ];
+    // Add per-channel CVRs (only if showing all channels)
+    if (!filters.channel || filters.channel === 'all') {
+        activeChannels.forEach(function(c) {
+            if (totCh[c] && totCh[c].installs > 0) {
+                kpiData.push({l:c + ' CVR', v:(totCh[c].payments / totCh[c].installs * 100).toFixed(1) + '%'});
+            }
+        });
+    } else {
+        var ch = totCh[filters.channel];
+        if (ch && ch.installs > 0) {
+            kpiData.push({l:filters.channel + ' CVR', v:(ch.payments / ch.installs * 100).toFixed(1) + '%'});
+        }
+    }
+    kpiData.push({l:'Trial Revenue Share', v:totRev > 0 ? (totTrial / totRev * 100).toFixed(1) + '%' : '0%'});
+
+    kpiData.forEach(function(k) {
+        var div = document.createElement('div'); div.className = 'kpi';
+        var lbl = document.createElement('div'); lbl.className = 'label'; lbl.textContent = k.l;
+        var val = document.createElement('div'); val.className = 'value'; val.textContent = k.v;
+        div.appendChild(lbl); div.appendChild(val);
+        if (k.d) {
+            var delt = document.createElement('div');
+            delt.className = 'delta ' + (k.d >= 0 ? 'up' : 'down');
+            delt.textContent = (k.d >= 0 ? '\u25B2' : '\u25BC') + ' ' + Math.abs(k.d) + '% WoW';
+            div.appendChild(delt);
+        }
+        kpiRow.appendChild(div);
+    });
+    app.appendChild(kpiRow);
+
+    // ── Chart Row 1: Daily Installs + Daily Revenue ──
+    var grid1 = document.createElement('div'); grid1.className = 'grid-2';
+    var card1 = document.createElement('div'); card1.className = 'card';
+    var h1 = document.createElement('h3'); h1.textContent = 'Daily Installs by Channel';
+    var cvs1 = document.createElement('canvas');
+    card1.appendChild(h1); card1.appendChild(cvs1);
+
+    var card2 = document.createElement('div'); card2.className = 'card';
+    var h2 = document.createElement('h3'); h2.textContent = 'Daily Revenue (Trial + Monthly)';
+    var cvs2 = document.createElement('canvas');
+    card2.appendChild(h2); card2.appendChild(cvs2);
+    grid1.appendChild(card1); grid1.appendChild(card2);
+    app.appendChild(grid1);
+
+    charts.c1 = new Chart(cvs1, {type:'bar', data:{
+        labels:dates.map(U.shortDate),
+        datasets:activeChannels.map(function(c) { return {label:c, data:pivot(c,'installs'), backgroundColor:(chColors[c]||'#6b7280')+'cc'}; })
+    }, options:{responsive:true, animation:false, scales:{x:{stacked:true,ticks:{color:'#6b7280',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:function(v){return U.fN(v)}}}},plugins:{legend:{labels:{color:'#374151'}}}}});
+
+    charts.c2 = new Chart(cvs2, {type:'bar', data:{
+        labels:revenueDaily.map(function(r) { return U.shortDate(r.dt); }),
+        datasets:[
+            {label:'Trial \u20B9', data:revenueDaily.map(function(r) { return r.trial_revenue; }), backgroundColor:'#f97316cc'},
+            {label:'Monthly \u20B9', data:revenueDaily.map(function(r) { return r.monthly_revenue; }), backgroundColor:'#22c55ecc'}
+        ]
+    }, options:{responsive:true, animation:false, scales:{x:{stacked:true,ticks:{color:'#6b7280',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:function(v){return '\u20B9'+U.fN(v)}}}},plugins:{legend:{labels:{color:'#374151'}}}}});
+
+    // ── Chart Row 2: Weekly CVR + Language Doughnut ──
+    var grid2 = document.createElement('div'); grid2.className = 'grid-2';
+    var card3 = document.createElement('div'); card3.className = 'card';
+    var h3 = document.createElement('h3'); h3.textContent = 'Weekly CVR by Channel (12 weeks)';
+    var cvs3 = document.createElement('canvas');
+    card3.appendChild(h3); card3.appendChild(cvs3);
+
+    var card4 = document.createElement('div'); card4.className = 'card';
+    var h4 = document.createElement('h3'); h4.textContent = 'Install Mix by Language (30 days)';
+    var cvs4 = document.createElement('canvas');
+    card4.appendChild(h4); card4.appendChild(cvs4);
+    grid2.appendChild(card3); grid2.appendChild(card4);
+    app.appendChild(grid2);
+
+    var weeks = [];
+    var wSeen = {};
+    weeklyChannel.forEach(function(r) { if (!wSeen[r.week_start]) { wSeen[r.week_start] = true; weeks.push(r.week_start); } });
+    var wPivot = function(ch) {
+        return weeks.map(function(w) {
+            var r = weeklyChannel.find(function(x) { return x.week_start === w && x.channel_group === ch; });
+            return r ? r.cvr : 0;
+        });
+    };
+
+    charts.c3 = new Chart(cvs3, {type:'line', data:{
+        labels:weeks.map(U.shortDate),
+        datasets:channels.map(function(c) { return {label:c, data:wPivot(c), borderColor:chColors[c], tension:.3, pointRadius:3}; })
+    }, options:{responsive:true, animation:false, interaction:{mode:'index',intersect:false}, scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:function(v){return v+'%'}}},x:{ticks:{color:'#6b7280'}}},plugins:{legend:{labels:{color:'#374151'}}}}});
+
+    var langFiltered = langData.filter(function(r) { return r.installs > 5000; });
+    charts.c4 = new Chart(cvs4, {type:'doughnut', data:{
+        labels:langFiltered.map(function(r) { return langNames[r.lang] || r.lang; }),
+        datasets:[{data:langFiltered.map(function(r) { return r.installs; }), backgroundColor:['#ff4d00','#FF7810','#f97316','#3b82f6','#0ea5e9','#ea580c','#22c55e','#6b7280','#ef4444','#d1d5db']}]
+    }, options:{responsive:true, animation:false, plugins:{legend:{position:'right',labels:{color:'#374151',font:{size:11}}}}}});
+
+    // ── Chart 3: Language CVR ──
+    var langCard = document.createElement('div'); langCard.className = 'card';
+    var h5 = document.createElement('h3'); h5.textContent = 'Conversion Rate by Language (30 days, \u22655K installs)';
+    var cvs5 = document.createElement('canvas');
+    langCard.appendChild(h5); langCard.appendChild(cvs5);
+    app.appendChild(langCard);
+
+    charts.c5 = new Chart(cvs5, {type:'bar', data:{
+        labels:langFiltered.map(function(r) { return langNames[r.lang] || r.lang; }),
+        datasets:[{label:'CVR %', data:langFiltered.map(function(r) { return r.cvr; }), backgroundColor:langFiltered.map(function(r) { return r.cvr >= 8 ? '#22c55ecc' : r.cvr >= 5 ? '#f97316cc' : '#ef4444cc'; }), borderRadius:6}]
+    }, options:{responsive:true, animation:false, scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:function(v){return v+'%'}}},x:{ticks:{color:'#374151'}}},plugins:{legend:{display:false}}}});
+
+    // ── Chart 4: Weekly Install Volume ──
+    var wInstCard = document.createElement('div'); wInstCard.className = 'card';
+    var h6 = document.createElement('h3'); h6.textContent = 'Weekly Install Volume by Channel (12 weeks)';
+    var cvs6 = document.createElement('canvas');
+    wInstCard.appendChild(h6); wInstCard.appendChild(cvs6);
+    app.appendChild(wInstCard);
+
+    var wInstalls = function(ch) {
+        return weeks.map(function(w) {
+            var r = weeklyChannel.find(function(x) { return x.week_start === w && x.channel_group === ch; });
+            return r ? r.installs : 0;
+        });
+    };
+    charts.c6 = new Chart(cvs6, {type:'bar', data:{
+        labels:weeks.map(U.shortDate),
+        datasets:channels.map(function(c) { return {label:c, data:wInstalls(c), backgroundColor:(chColors[c]||'#6b7280')+'cc'}; })
+    }, options:{responsive:true, animation:false, scales:{x:{stacked:true,ticks:{color:'#6b7280'}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:function(v){return U.fN(v)}}}},plugins:{legend:{labels:{color:'#374151'}}}}});
+
+    // ── Language Table ──
+    var tblCard = document.createElement('div'); tblCard.className = 'card';
+    var h7 = document.createElement('h3'); h7.textContent = 'Language Performance (30 days)';
+    tblCard.appendChild(h7);
+    var tblWrap = document.createElement('div'); tblWrap.style.overflowX = 'auto';
+    var tbl = document.createElement('table');
+    var thead = document.createElement('thead');
+    var hrow = document.createElement('tr');
+    ['Language','Installs','Payments','CVR %','Share of Installs'].forEach(function(h) {
+        var th = document.createElement('th'); th.textContent = h;
+        if (h !== 'Language') th.style.textAlign = 'right';
+        hrow.appendChild(th);
+    });
+    thead.appendChild(hrow); tbl.appendChild(thead);
+    var tbody = document.createElement('tbody');
+    langData.forEach(function(r) {
+        var share = totInst > 0 ? (r.installs / totInst * 100).toFixed(1) : '0';
+        var tr = document.createElement('tr');
+        var td1 = document.createElement('td'); td1.textContent = langNames[r.lang] || r.lang;
+        var td2 = document.createElement('td'); td2.textContent = U.fN(r.installs); td2.style.textAlign = 'right';
+        var td3 = document.createElement('td'); td3.textContent = U.fN(r.payments); td3.style.textAlign = 'right';
+        var td4 = document.createElement('td'); td4.style.textAlign = 'right';
+        var tag = document.createElement('span');
+        tag.className = 'tag ' + (r.cvr >= 8 ? 'tag-high' : r.cvr >= 5 ? 'tag-med' : 'tag-low');
+        tag.textContent = r.cvr + '%';
+        td4.appendChild(tag);
+        var td5 = document.createElement('td'); td5.textContent = share + '%'; td5.style.textAlign = 'right';
+        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4); tr.appendChild(td5);
+        tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); tblWrap.appendChild(tbl); tblCard.appendChild(tblWrap);
+    app.appendChild(tblCard);
+
+    // Footer
+    var footer = document.createElement('p');
+    footer.style.textAlign = 'center'; footer.style.color = '#9ca3af';
+    footer.style.fontSize = '11px'; footer.style.marginTop = '20px';
+    footer.textContent = 'SpeakX Marketing Performance \xB7 ' + dates.length + ' days \xB7 Data excludes partial current day';
+    app.appendChild(footer);
+
+    // Status
+    var cfg = window.SPEAKX.CONFIG;
+    if (cfg && cfg.REDASH_URL) {
+        window.SPEAKX.Filters.setStatus('Live data \xB7 ' + dates.length + ' days shown', 'live');
+    } else {
+        window.SPEAKX.Filters.setStatus('Snapshot data (Mar 4, 2026) \xB7 Set REDASH_URL for live data', 'snapshot');
+    }
+}
+
+// ═══ INITIALIZE FILTERS ═══
+window.SPEAKX.Filters.init('filters', [
+    { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 },
+    { type: 'select', key: 'channel', label: 'Channel', options: [
+        {value:'all', text:'All Channels'},
+        {value:'Google', text:'Google'},
+        {value:'Meta', text:'Meta'},
+        {value:'Organic', text:'Organic'},
+        {value:'Other Paid', text:'Other Paid'}
+    ]}
+], function(state) {
+    renderDashboard(state);
 });
-khtml+='</div>';
-app.innerHTML=khtml;
 
-// Chart 1: Daily installs stacked by channel
-app.insertAdjacentHTML('beforeend',`<div class="grid-2"><div class="card"><h3>Daily Installs by Channel</h3><canvas id="c1"></canvas></div><div class="card"><h3>Daily Revenue (Trial + Monthly)</h3><canvas id="c2"></canvas></div></div>`);
-
-new Chart(document.getElementById('c1'),{type:'bar',data:{labels:dates.map(shortDate),datasets:channels.map(c=>({label:c,data:pivot(c,'installs'),backgroundColor:chColors[c]+'cc'}))},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#6b7280',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>fN(v)}}},plugins:{legend:{labels:{color:'#374151'}}}}});
-
-new Chart(document.getElementById('c2'),{type:'bar',data:{labels:revenueDaily.map(r=>shortDate(r.dt)),datasets:[{label:'Trial ₹',data:revenueDaily.map(r=>r.trial_revenue),backgroundColor:'#f97316cc'},{label:'Monthly ₹',data:revenueDaily.map(r=>r.monthly_revenue),backgroundColor:'#22c55ecc'}]},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#6b7280',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>'₹'+fN(v)}}},plugins:{legend:{labels:{color:'#374151'}}}}});
-
-// Chart 2: Weekly channel CVR trend
-app.insertAdjacentHTML('beforeend',`<div class="grid-2"><div class="card"><h3>Weekly CVR by Channel (12 weeks)</h3><canvas id="c3"></canvas></div><div class="card"><h3>Install Mix by Language (30 days)</h3><canvas id="c4"></canvas></div></div>`);
-
-const weeks=[...new Set(weeklyChannel.map(r=>r.week_start))];
-const wPivot=(ch)=>weeks.map(w=>{const r=weeklyChannel.find(x=>x.week_start===w&&x.channel_group===ch);return r?r.cvr:0});
-new Chart(document.getElementById('c3'),{type:'line',data:{labels:weeks.map(shortDate),datasets:channels.map(c=>({label:c,data:wPivot(c),borderColor:chColors[c],tension:.3,pointRadius:3}))},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>v+'%'}},x:{ticks:{color:'#6b7280'}}},plugins:{legend:{labels:{color:'#374151'}}}}});
-
-// Language doughnut
-const langFiltered=langData.filter(r=>r.installs>5000);
-new Chart(document.getElementById('c4'),{type:'doughnut',data:{labels:langFiltered.map(r=>langNames[r.lang]||r.lang),datasets:[{data:langFiltered.map(r=>r.installs),backgroundColor:['#ff4d00','#FF7810','#f97316','#3b82f6','#0ea5e9','#ea580c','#22c55e','#6b7280','#ef4444','#d1d5db']}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#374151',font:{size:11}}}}}});
-
-// Chart 3: Language CVR bar
-app.insertAdjacentHTML('beforeend',`<div class="card"><h3>Conversion Rate by Language (30 days, ≥5K installs)</h3><canvas id="c5"></canvas></div>`);
-new Chart(document.getElementById('c5'),{type:'bar',data:{labels:langFiltered.map(r=>langNames[r.lang]||r.lang),datasets:[{label:'CVR %',data:langFiltered.map(r=>r.cvr),backgroundColor:langFiltered.map(r=>r.cvr>=8?'#22c55ecc':r.cvr>=5?'#f97316cc':'#ef4444cc'),borderRadius:6}]},options:{responsive:true,scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>v+'%'}},x:{ticks:{color:'#374151'}}},plugins:{legend:{display:false}}}});
-
-// Weekly channel stacked installs
-app.insertAdjacentHTML('beforeend',`<div class="card"><h3>Weekly Install Volume by Channel (12 weeks)</h3><canvas id="c6"></canvas></div>`);
-const wInstalls=(ch)=>weeks.map(w=>{const r=weeklyChannel.find(x=>x.week_start===w&&x.channel_group===ch);return r?r.installs:0});
-new Chart(document.getElementById('c6'),{type:'bar',data:{labels:weeks.map(shortDate),datasets:channels.map(c=>({label:c,data:wInstalls(c),backgroundColor:chColors[c]+'cc'}))},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#6b7280'}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>fN(v)}}},plugins:{legend:{labels:{color:'#374151'}}}}});
-
-// Language table
-let lhtml='<div class="card"><h3>Language Performance (30 days)</h3><div style="overflow-x:auto"><table><thead><tr><th>Language</th><th style="text-align:right">Installs</th><th style="text-align:right">Payments</th><th style="text-align:right">CVR %</th><th style="text-align:right">Share of Installs</th></tr></thead><tbody>';
-langData.forEach(r=>{
-  const share=(r.installs/totInst*100).toFixed(1);
-  const tag=r.cvr>=8?'tag-high':r.cvr>=5?'tag-med':'tag-low';
-  lhtml+=`<tr><td>${langNames[r.lang]||r.lang}</td><td style="text-align:right">${fN(r.installs)}</td><td style="text-align:right">${fN(r.payments)}</td><td style="text-align:right"><span class="tag ${tag}">${r.cvr}%</span></td><td style="text-align:right">${share}%</td></tr>`;
-});
-lhtml+='</tbody></table></div></div>';
-app.insertAdjacentHTML('beforeend',lhtml);
-
-app.insertAdjacentHTML('beforeend','<p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:20px">SpeakX Marketing Performance · Auto-generated · Data excludes partial current day</p>');
+// Initial render
+renderDashboard(window.SPEAKX.Filters.getState());
 </script>
 </body>
 </html>
