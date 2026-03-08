@@ -17,7 +17,7 @@ window.SPEAKX.CONFIG = {
     d0_daily:        { id: 1270, apiKey: 'TEqLkrWQB9ZQLqllklqt9gM1MrYnmsqXTJCAlgTX', label: 'D0 Daily Conversion & Installs' },
     weekly_revenue:  { id: 1267, apiKey: 'OchEW33UF8AvmMZtfXcASy9okBLWm3GNAgBOs7ON', label: 'Weekly Revenue by Payment #' },
     marketing_ads:   { id: 1124, apiKey: 'r0dugFjEzMVTocQourXYsKhMVm2yEHa75wVUyDbp', label: 'Marketing Ad Insights' },
-    cohort_green:    { id: 1269, apiKey: '', label: 'Green Cohort MOM Activation' },
+    cohort_green:    { id: 1269, apiKey: 'vKtgg0ldRoaF6Fo8d6jxVQKXAp1XbgKYmg9clmEg', label: 'Green Cohort MOM Activation' },
     ab_livekit:      { id: 1197, apiKey: '9jwuaHXoXEgWmY8n3M5pl9c3e1BsL5sfozJMWsm0', label: 'AB Experiment Results' },
   },
 
