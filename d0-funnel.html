@@ -5,35 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SpeakX · D0 Conversion Funnel</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f1a;color:#e0e0e0;min-height:100vh}
-.header{background:linear-gradient(135deg,#6c5ce7,#a29bfe,#fd79a8);padding:32px 40px;border-radius:0 0 20px 20px}
+body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff7ed;color:#111827;min-height:100vh}
+.header{background:linear-gradient(135deg,#ff4d00,#FF7810);padding:32px 40px;border-radius:0 0 20px 20px}
 .header h1{font-size:28px;font-weight:700;color:#fff}
-.header p{color:rgba(255,255,255,.85);font-size:14px;margin-top:4px}
+.header p{color:rgba(255,255,255,.9);font-size:14px;margin-top:4px}
 .container{max-width:1400px;margin:0 auto;padding:24px}
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
-.kpi{background:#1a1a2e;border-radius:14px;padding:20px;border:1px solid rgba(108,92,231,.2)}
-.kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#a29bfe;margin-bottom:6px}
-.kpi .value{font-size:26px;font-weight:700;color:#fff}
+.kpi{background:#fff;border-radius:14px;padding:20px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#ea580c;margin-bottom:6px;font-weight:600}
+.kpi .value{font-size:26px;font-weight:700;color:#111827}
 .kpi .delta{font-size:12px;margin-top:4px}
-.kpi .delta.up{color:#00b894}.kpi .delta.down{color:#ff6b6b}
-.card{background:#1a1a2e;border-radius:14px;padding:24px;margin-bottom:24px;border:1px solid rgba(108,92,231,.15)}
-.card h3{font-size:16px;font-weight:600;color:#a29bfe;margin-bottom:16px}
+.kpi .delta.up{color:#16a34a}.kpi .delta.down{color:#dc2626}
+.card{background:#fff;border-radius:14px;padding:24px;margin-bottom:24px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card h3{font-size:16px;font-weight:600;color:#111827;margin-bottom:16px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .funnel-bar{display:flex;align-items:center;margin-bottom:10px}
-.funnel-bar .step-name{width:130px;font-size:12px;color:#bbb;text-align:right;padding-right:12px}
-.funnel-bar .bar-wrap{flex:1;height:32px;background:#16213e;border-radius:6px;overflow:hidden;position:relative}
+.funnel-bar .step-name{width:130px;font-size:12px;color:#6b7280;text-align:right;padding-right:12px}
+.funnel-bar .bar-wrap{flex:1;height:32px;background:#f3f4f6;border-radius:6px;overflow:hidden;position:relative}
 .funnel-bar .bar-fill{height:100%;border-radius:6px;transition:width .6s ease}
 .funnel-bar .bar-text{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:600;color:#fff}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:10px 12px;border-bottom:2px solid #6c5ce7;color:#a29bfe;font-weight:600;font-size:11px;text-transform:uppercase}
-td{padding:9px 12px;border-bottom:1px solid rgba(108,92,231,.1)}
-tr:hover td{background:rgba(108,92,231,.08)}
+th{text-align:left;padding:10px 12px;border-bottom:2px solid #ff4d00;color:#ea580c;font-weight:600;font-size:11px;text-transform:uppercase}
+td{padding:9px 12px;border-bottom:1px solid #f3f4f6;color:#374151}
+tr:hover td{background:rgba(255,120,16,.04)}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
-.tag-high{background:rgba(0,184,148,.15);color:#00b894}
-.tag-med{background:rgba(253,121,168,.15);color:#fd79a8}
-.tag-low{background:rgba(255,107,107,.15);color:#ff6b6b}
+.tag-high{background:rgba(34,197,94,.1);color:#16a34a}
+.tag-med{background:rgba(249,115,22,.1);color:#ea580c}
+.tag-low{background:rgba(239,68,68,.1);color:#dc2626}
 canvas{max-height:320px}
 @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
 </style>
@@ -61,7 +62,7 @@ const dailyCVR = [{"dt":"2026-02-03","installs":30644,"inst_to_fs":98.23,"fs_to_
 const fN = n => n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'K':n.toLocaleString('en-IN');
 const pct = (a,b) => b?((a/b)*100).toFixed(1):0;
 const shortDate = s => {const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})};
-const chartColors = {purple:'#6c5ce7',pink:'#fd79a8',blue:'#74b9ff',green:'#00b894',orange:'#fdcb6e',red:'#ff6b6b',teal:'#00cec9',grey:'#636e72'};
+const chartColors = {purple:'#ff4d00',pink:'#ea580c',blue:'#3b82f6',green:'#22c55e',orange:'#fbbf24',red:'#ef4444',teal:'#0ea5e9',grey:'#6b7280'};
 
 // ── AGGREGATE 30-day totals ──
 const t = dailyFunnel.reduce((a,r)=>{for(let k in r){if(k!=='dt') a[k]=(a[k]||0)+r[k]} return a},{});
@@ -94,13 +95,13 @@ app.innerHTML = khtml;
 
 // FUNNEL WATERFALL (30-day aggregate)
 const steps = [
-  {name:'Installs',val:t.installs,color:'#6c5ce7'},
-  {name:'First Screen',val:t.fs_shown,color:'#a29bfe'},
-  {name:'OB Completed',val:t.ob_completed,color:'#74b9ff'},
-  {name:'Login',val:t.login_users,color:'#00cec9'},
-  {name:'Checkout Load',val:t.checkout_load,color:'#00b894'},
-  {name:'Order Created',val:t.order_created,color:'#fdcb6e'},
-  {name:'Payment',val:t.payments,color:'#fd79a8'}
+  {name:'Installs',val:t.installs,color:'#ff4d00'},
+  {name:'First Screen',val:t.fs_shown,color:'#FF7810'},
+  {name:'OB Completed',val:t.ob_completed,color:'#f97316'},
+  {name:'Login',val:t.login_users,color:'#0ea5e9'},
+  {name:'Checkout Load',val:t.checkout_load,color:'#22c55e'},
+  {name:'Order Created',val:t.order_created,color:'#fbbf24'},
+  {name:'Payment',val:t.payments,color:'#ea580c'}
 ];
 let fhtml='<div class="card"><h3>30-Day Aggregate Funnel</h3>';
 steps.forEach(s=>{
@@ -120,16 +121,16 @@ app.insertAdjacentHTML('beforeend', `<div class="grid-2">
 new Chart(document.getElementById('cDaily'),{type:'line',data:{
   labels:dailyFunnel.map(r=>shortDate(r.dt)),
   datasets:[
-    {label:'Installs',data:dailyFunnel.map(r=>r.installs),borderColor:'#6c5ce7',backgroundColor:'rgba(108,92,231,.1)',fill:true,tension:.3,yAxisID:'y'},
-    {label:'Payments',data:dailyFunnel.map(r=>r.payments),borderColor:'#fd79a8',backgroundColor:'rgba(253,121,168,.1)',fill:true,tension:.3,yAxisID:'y1'}
-  ]},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{position:'left',grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>fN(v)}},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#fd79a8'}},x:{ticks:{color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:15}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
+    {label:'Installs',data:dailyFunnel.map(r=>r.installs),borderColor:'#ff4d00',backgroundColor:'rgba(255,77,0,.08)',fill:true,tension:.3,yAxisID:'y'},
+    {label:'Payments',data:dailyFunnel.map(r=>r.payments),borderColor:'#ea580c',backgroundColor:'rgba(234,88,12,.08)',fill:true,tension:.3,yAxisID:'y1'}
+  ]},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{position:'left',grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>fN(v)}},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#ea580c'}},x:{ticks:{color:'#6b7280',maxRotation:45,autoSkip:true,maxTicksLimit:15}}},plugins:{legend:{labels:{color:'#374151'}}}}});
 
 new Chart(document.getElementById('cWeekly'),{type:'bar',data:{
   labels:weeklyFunnel.map(r=>shortDate(r.week_start)),
   datasets:[
-    {label:'CVR %',data:weeklyFunnel.map(r=>r.cvr),backgroundColor:'rgba(108,92,231,.7)',yAxisID:'y'},
-    {label:'Installs',data:weeklyFunnel.map(r=>r.installs),type:'line',borderColor:'#00cec9',pointBackgroundColor:'#00cec9',tension:.3,yAxisID:'y1'}
-  ]},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{position:'left',grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>v+'%'},min:0,max:10},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#00cec9',callback:v=>fN(v)}},x:{ticks:{color:'#888'}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
+    {label:'CVR %',data:weeklyFunnel.map(r=>r.cvr),backgroundColor:'rgba(255,77,0,.7)',yAxisID:'y'},
+    {label:'Installs',data:weeklyFunnel.map(r=>r.installs),type:'line',borderColor:'#0ea5e9',pointBackgroundColor:'#0ea5e9',tension:.3,yAxisID:'y1'}
+  ]},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{position:'left',grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>v+'%'},min:0,max:10},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#0ea5e9',callback:v=>fN(v)}},x:{ticks:{color:'#6b7280'}}},plugins:{legend:{labels:{color:'#374151'}}}}});
 
 // CHARTS ROW 2: Channel funnel bars, Daily Overall CVR trend
 app.insertAdjacentHTML('beforeend', `<div class="grid-2">
@@ -140,15 +141,15 @@ app.insertAdjacentHTML('beforeend', `<div class="grid-2">
 const chTop = channelFunnel.filter(r=>r.installs>1000);
 new Chart(document.getElementById('cChannel'),{type:'bar',data:{
   labels:chTop.map(r=>r.channel_group),
-  datasets:[{label:'CVR %',data:chTop.map(r=>r.cvr),backgroundColor:['#6c5ce7','#fd79a8','#00cec9','#fdcb6e','#636e72','#74b9ff','#00b894','#a29bfe','#ff6b6b']}]
-},options:{indexAxis:'horizontal',responsive:true,scales:{y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#ccc'}},x:{ticks:{color:'#aaa',callback:v=>v+'%'}}},plugins:{legend:{display:false}}}});
+  datasets:[{label:'CVR %',data:chTop.map(r=>r.cvr),backgroundColor:['#ff4d00','#FF7810','#f97316','#fbbf24','#6b7280','#3b82f6','#22c55e','#0ea5e9','#ef4444']}]
+},options:{indexAxis:'horizontal',responsive:true,scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#374151'}},x:{ticks:{color:'#6b7280',callback:v=>v+'%'}}},plugins:{legend:{display:false}}}});
 
 new Chart(document.getElementById('cCVR'),{type:'line',data:{
   labels:dailyCVR.map(r=>shortDate(r.dt)),
   datasets:[
-    {label:'Overall CVR %',data:dailyCVR.map(r=>r.overall_cvr),borderColor:'#fd79a8',backgroundColor:'rgba(253,121,168,.12)',fill:true,tension:.35,pointRadius:3},
-    {label:'Checkout→Pay %',data:dailyCVR.map(r=>r.checkout_to_pay),borderColor:'#00b894',tension:.35,pointRadius:2}
-  ]},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>v+'%'}},x:{ticks:{color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:15}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
+    {label:'Overall CVR %',data:dailyCVR.map(r=>r.overall_cvr),borderColor:'#ea580c',backgroundColor:'rgba(255,77,0,.08)',fill:true,tension:.35,pointRadius:3},
+    {label:'Checkout→Pay %',data:dailyCVR.map(r=>r.checkout_to_pay),borderColor:'#22c55e',tension:.35,pointRadius:2}
+  ]},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>v+'%'}},x:{ticks:{color:'#6b7280',maxRotation:45,autoSkip:true,maxTicksLimit:15}}},plugins:{legend:{labels:{color:'#374151'}}}}});
 
 // CHARTS ROW 3: Step-level drop-off
 app.insertAdjacentHTML('beforeend', `<div class="card"><h3>Step-Level Conversion Rates (30-day avg)</h3><canvas id="cSteps"></canvas></div>`);
@@ -163,15 +164,15 @@ const stepVals = [
 ];
 new Chart(document.getElementById('cSteps'),{type:'bar',data:{
   labels:stepNames,
-  datasets:[{label:'Conversion %',data:stepVals,backgroundColor:['#a29bfe','#74b9ff','#00cec9','#00b894','#fd79a8'],borderRadius:6}]
-},options:{responsive:true,scales:{y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>v+'%'},max:100},x:{ticks:{color:'#ccc'}}},plugins:{legend:{display:false}}}});
+  datasets:[{label:'Conversion %',data:stepVals,backgroundColor:['#ff4d00','#FF7810','#f97316','#22c55e','#ea580c'],borderRadius:6}]
+},options:{responsive:true,scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>v+'%'},max:100},x:{ticks:{color:'#374151'}}},plugins:{legend:{display:false}}}});
 
 // CAMPAIGN TABLE
-const chColor = {'Google':'#4285f4','Meta':'#0081fb','Ultra':'#00cec9','Organic':'#00b894','Unattributed':'#636e72','xiaomiglobal':'#ff6b6b','moloco':'#fdcb6e'};
+const chColor = {'Google':'#4285f4','Meta':'#0081fb','Ultra':'#0ea5e9','Organic':'#22c55e','Unattributed':'#6b7280','xiaomiglobal':'#ef4444','moloco':'#fbbf24'};
 let thtml='<div class="card"><h3>Top Campaigns (30 days, ≥50 installs)</h3><div style="overflow-x:auto"><table><thead><tr><th>Campaign</th><th>Channel</th><th style="text-align:right">Installs</th><th style="text-align:right">Payments</th><th style="text-align:right">CVR %</th><th style="text-align:right">D0 Cancel %</th></tr></thead><tbody>';
 campaignData.forEach(r=>{
   const tag = r.cvr>=7?'tag-high':r.cvr>=5?'tag-med':'tag-low';
-  thtml+=`<tr><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td><td><span style="color:${chColor[r.channel_group]||'#aaa'}">${r.channel_group}</span></td><td style="text-align:right">${fN(r.installs)}</td><td style="text-align:right">${fN(r.payments)}</td><td style="text-align:right"><span class="tag ${tag}">${r.cvr}%</span></td><td style="text-align:right">${r.cancel_rate}%</td></tr>`;
+  thtml+=`<tr><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td><td><span style="color:${chColor[r.channel_group]||'#6b7280'}">${r.channel_group}</span></td><td style="text-align:right">${fN(r.installs)}</td><td style="text-align:right">${fN(r.payments)}</td><td style="text-align:right"><span class="tag ${tag}">${r.cvr}%</span></td><td style="text-align:right">${r.cancel_rate}%</td></tr>`;
 });
 thtml+='</tbody></table></div></div>';
 app.insertAdjacentHTML('beforeend', thtml);
@@ -185,7 +186,7 @@ dailyFunnel.forEach(r=>{
 dhtml+='</tbody></table></div></div>';
 app.insertAdjacentHTML('beforeend', dhtml);
 
-app.insertAdjacentHTML('beforeend', '<p style="text-align:center;color:#555;font-size:11px;margin-top:20px">SpeakX D0 Conversion Funnel · Auto-generated · Data excludes partial current day</p>');
+app.insertAdjacentHTML('beforeend', '<p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:20px">SpeakX D0 Conversion Funnel · Auto-generated · Data excludes partial current day</p>');
 </script>
 </body>
 </html>

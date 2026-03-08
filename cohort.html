@@ -4,33 +4,34 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SpeakX Cohort Deep-Dive</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a2e;color:#e0e0ff;min-height:100vh}
-.hdr{background:linear-gradient(135deg,#6c5ce7,#a29bfe,#6c5ce7);padding:28px 32px;text-align:center}
+body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff7ed;color:#111827;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#ff4d00,#FF7810);padding:28px 32px;text-align:center}
 .hdr h1{font-size:26px;font-weight:700;color:#fff;letter-spacing:.5px}
-.hdr p{color:#e0d4ff;font-size:13px;margin-top:4px}
+.hdr p{color:rgba(255,255,255,.9);font-size:13px;margin-top:4px}
 .wrap{max-width:1340px;margin:0 auto;padding:24px 20px}
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.kpi{background:linear-gradient(135deg,#1a1a4e,#2d2d6e);border-radius:14px;padding:20px;text-align:center;border:1px solid #3d3d8e}
-.kpi .v{font-size:30px;font-weight:800;background:linear-gradient(135deg,#a29bfe,#6c5ce7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.kpi .l{font-size:11px;color:#9998cc;margin-top:4px;text-transform:uppercase;letter-spacing:1px}
-.kpi .d{font-size:11px;color:#74e0a8;margin-top:2px}
+.kpi{background:#fff;border-radius:14px;padding:20px;text-align:center;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.kpi .v{font-size:30px;font-weight:800;color:#ff4d00}
+.kpi .l{font-size:11px;color:#6b7280;margin-top:4px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.kpi .d{font-size:11px;color:#16a34a;margin-top:2px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
-.card{background:#12123a;border-radius:14px;padding:20px;border:1px solid #2d2d6e}
-.card h3{font-size:14px;font-weight:600;color:#c8c4ff;margin-bottom:14px}
+.card{background:#fff;border-radius:14px;padding:20px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card h3{font-size:14px;font-weight:600;color:#111827;margin-bottom:14px}
 .card canvas{width:100%!important;height:260px!important}
 .full{grid-column:1/-1}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:#1a1a4e;color:#a29bfe;padding:10px 8px;text-align:left;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.5px;position:sticky;top:0}
-td{padding:8px;border-bottom:1px solid #1a1a4e;color:#c8c4ff}
-tr:hover td{background:#1a1a4e}
+th{background:#fff7ed;color:#ea580c;padding:10px 8px;text-align:left;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.5px;position:sticky;top:0}
+td{padding:8px;border-bottom:1px solid #f3f4f6;color:#374151}
+tr:hover td{background:rgba(255,120,16,.04)}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
-.b-green{background:#00b89420;color:#00b894}.b-red{background:#ff6b6b20;color:#ff6b6b}
-.tbl-wrap{max-height:440px;overflow-y:auto;border-radius:10px;border:1px solid #2d2d6e}
-.insight{background:linear-gradient(135deg,#1a1a4e,#2d1a4e);border:1px solid #6c5ce740;border-radius:14px;padding:20px;margin-bottom:24px}
-.insight h3{color:#a29bfe;font-size:14px;margin-bottom:10px}
-.insight p{font-size:13px;line-height:1.7;color:#c8c4ff}
+.b-green{background:rgba(34,197,94,.1);color:#16a34a}.b-red{background:rgba(239,68,68,.1);color:#dc2626}
+.tbl-wrap{max-height:440px;overflow-y:auto;border-radius:10px;border:1px solid #e5e7eb}
+.insight{background:#fff;border:1px solid #fed7aa;border-radius:14px;padding:20px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.insight h3{color:#ea580c;font-size:14px;margin-bottom:10px}
+.insight p{font-size:13px;line-height:1.7;color:#374151}
 </style>
 </head>
 <body>
@@ -92,31 +93,31 @@ const gt=[
 ];
 const ret=[{l:'M1',u:95246},{l:'M2',u:66849},{l:'M3',u:42457},{l:'M4',u:21322},{l:'M5',u:15117},{l:'M6',u:15865},{l:'M7+',u:52918}];
 const eng={open:[47,38.5,33.6,31.1,28.5,26.7,25.1],les:[28.1,23.2,19.7,17.6,0,0,13.5],wOpen:[71.9,49.3,35.4,27.1]};
-const dx={font:{family:"'Segoe UI',system-ui,sans-serif"}};
-Chart.defaults.color='#9998cc';Chart.defaults.font.family=dx.font.family;
+const dx={font:{family:"'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif"}};
+Chart.defaults.color='#6b7280';Chart.defaults.font.family=dx.font.family;
 
 // C1: Green vs Non-Green CVR
 new Chart(document.getElementById('c1'),{type:'line',data:{labels:gc.map(r=>r.w),datasets:[
-{label:'Green CVR %',data:gc.map(r=>+(100*r.gC/r.gT).toFixed(1)),borderColor:'#00b894',backgroundColor:'#00b89420',tension:.3,fill:true,pointRadius:3},
-{label:'Non-Green CVR %',data:gc.map(r=>+(100*r.nC/r.nT).toFixed(1)),borderColor:'#ff6b6b',backgroundColor:'#ff6b6b20',tension:.3,fill:true,pointRadius:3}
-]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12}}},scales:{y:{min:35,max:75,ticks:{callback:v=>v+'%'},grid:{color:'#1a1a4e'}},x:{grid:{display:false}}}}});
+{label:'Green CVR %',data:gc.map(r=>+(100*r.gC/r.gT).toFixed(1)),borderColor:'#22c55e',backgroundColor:'#22c55e20',tension:.3,fill:true,pointRadius:3},
+{label:'Non-Green CVR %',data:gc.map(r=>+(100*r.nC/r.nT).toFixed(1)),borderColor:'#ef4444',backgroundColor:'#ef444420',tension:.3,fill:true,pointRadius:3}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}},scales:{y:{min:35,max:75,ticks:{callback:v=>v+'%',color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
 
 // C2: Green Share Trend
 new Chart(document.getElementById('c2'),{type:'line',data:{labels:gt.map(r=>r.w),datasets:[
-{label:'Green %',data:gt.map(r=>r.gp),borderColor:'#6c5ce7',backgroundColor:'#6c5ce720',tension:.3,fill:true,pointRadius:2,borderWidth:2.5},
-{label:'Avg Practice Days',data:gt.map(r=>r.pd),borderColor:'#fdcb6e',borderDash:[5,5],tension:.3,yAxisID:'y2',pointRadius:0,borderWidth:2}
-]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12}}},scales:{y:{min:24,max:40,ticks:{callback:v=>v+'%'},grid:{color:'#1a1a4e'}},y2:{position:'right',min:2.2,max:3.2,ticks:{callback:v=>v+'d'},grid:{display:false}},x:{grid:{display:false},ticks:{maxRotation:45,font:{size:9}}}}}});
+{label:'Green %',data:gt.map(r=>r.gp),borderColor:'#ff4d00',backgroundColor:'#ff4d0020',tension:.3,fill:true,pointRadius:2,borderWidth:2.5},
+{label:'Avg Practice Days',data:gt.map(r=>r.pd),borderColor:'#f97316',borderDash:[5,5],tension:.3,yAxisID:'y2',pointRadius:0,borderWidth:2}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}},scales:{y:{min:24,max:40,ticks:{callback:v=>v+'%',color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},y2:{position:'right',min:2.2,max:3.2,ticks:{callback:v=>v+'d',color:'#6b7280'},grid:{display:false}},x:{grid:{display:false},ticks:{maxRotation:45,font:{size:9},color:'#6b7280'}}}}});
 
 // C3: Retention Waterfall
 new Chart(document.getElementById('c3'),{type:'bar',data:{labels:ret.map(r=>r.l),datasets:[{
-label:'Active Users',data:ret.map(r=>r.u),backgroundColor:ret.map((_,i)=>{const c=['#a29bfe','#6c5ce7','#5a4bd1','#4834b5','#362799','#2d1f8a','#1a1466'];return c[i]}),
-borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const pct=(100*ctx.raw/ret[0].u).toFixed(1);return ctx.raw.toLocaleString()+' users ('+pct+'% of M1)'}}}},scales:{y:{ticks:{callback:v=>(v/1000)+'K'},grid:{color:'#1a1a4e'}},x:{grid:{display:false}}}}});
+label:'Active Users',data:ret.map(r=>r.u),backgroundColor:ret.map((_,i)=>{const c=['#ff4d00','#FF7810','#f97316','#fb923c','#fdba74','#fed7aa','#ffedd5'];return c[i]}),
+borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const pct=(100*ctx.raw/ret[0].u).toFixed(1);return ctx.raw.toLocaleString()+' users ('+pct+'% of M1)'}}}},scales:{y:{ticks:{callback:v=>(v/1000)+'K',color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
 
 // C4: Engagement Decay
 new Chart(document.getElementById('c4'),{type:'line',data:{labels:['D0','D1','D2','D3','D4','D5','D6'],datasets:[
-{label:'App Open %',data:eng.open,borderColor:'#a29bfe',backgroundColor:'#a29bfe30',tension:.3,fill:true,pointRadius:4,borderWidth:2.5},
-{label:'Lesson Attempt %',data:[28.1,23.2,19.7,17.6,16,14.5,13.5],borderColor:'#00b894',backgroundColor:'#00b89420',tension:.3,fill:true,pointRadius:4,borderWidth:2.5}
-]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12}}},scales:{y:{min:0,max:55,ticks:{callback:v=>v+'%'},grid:{color:'#1a1a4e'}},x:{grid:{display:false}}}}});
+{label:'App Open %',data:eng.open,borderColor:'#FF7810',backgroundColor:'#FF781030',tension:.3,fill:true,pointRadius:4,borderWidth:2.5},
+{label:'Lesson Attempt %',data:[28.1,23.2,19.7,17.6,16,14.5,13.5],borderColor:'#22c55e',backgroundColor:'#22c55e20',tension:.3,fill:true,pointRadius:4,borderWidth:2.5}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,padding:12,color:'#374151'}}},scales:{y:{min:0,max:55,ticks:{callback:v=>v+'%',color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{color:'#6b7280'}}}}});
 
 // Table
 const gMap=new Map();gc.forEach(r=>{gMap.set(r.w,{gc:+(100*r.gC/r.gT).toFixed(1),nc:+(100*r.nC/r.nT).toFixed(1)})});
@@ -126,8 +127,8 @@ const gCvr=m?m.gc:'-';const nCvr=m?m.nc:'-';const gap=m?(m.gc-m.nc).toFixed(1):'
 const gpCls=r.gp>=35?'b-green':'b-red';
 tr.innerHTML=`<td>${r.w}</td><td>${r.t.toLocaleString()}</td><td>${r.g.toLocaleString()}</td>
 <td><span class="badge ${gpCls}">${r.gp}%</span></td><td>${r.pd}</td><td>${r.dl}</td>
-<td style="color:#00b894;font-weight:600">${gCvr}%</td><td style="color:#ff6b6b">${nCvr}%</td>
-<td style="color:#fdcb6e;font-weight:600">${gap!=='-'?'+'+gap+'pp':'-'}</td>`;
+<td style="color:#22c55e;font-weight:600">${gCvr}%</td><td style="color:#ef4444">${nCvr}%</td>
+<td style="color:#f97316;font-weight:600">${gap!=='-'?'+'+gap+'pp':'-'}</td>`;
 tb.appendChild(tr)});
 </script>
 </body>

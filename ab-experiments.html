@@ -1,32 +1,33 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SpeakX A/B Experiment Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a1628;color:#e0e0e0}
-.hdr{background:linear-gradient(135deg,#00b4d8,#0077b6,#023e8a);padding:28px 32px;display:flex;justify-content:space-between;align-items:center}
-.hdr h1{font-size:22px;color:#fff}.hdr .sub{color:#caf0f8;font-size:13px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff7ed;color:#111827}
+.hdr{background:linear-gradient(135deg,#ff4d00,#FF7810);padding:28px 32px;display:flex;justify-content:space-between;align-items:center}
+.hdr h1{font-size:22px;color:#fff}.hdr .sub{color:rgba(255,255,255,.9);font-size:13px}
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px 24px}
-.kpi{background:linear-gradient(135deg,#0d1b2a,#1b2838);border-radius:12px;padding:18px;border:1px solid #1e3a5f}
-.kpi .lbl{font-size:11px;color:#90e0ef;text-transform:uppercase;letter-spacing:1px}.kpi .val{font-size:26px;font-weight:700;color:#00b4d8;margin:4px 0}
-.kpi .delta{font-size:12px}.up{color:#00f5d4}.dn{color:#ff6b6b}
+.kpi{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.kpi .lbl{font-size:11px;color:#ea580c;text-transform:uppercase;letter-spacing:1px;font-weight:600}.kpi .val{font-size:26px;font-weight:700;color:#111827;margin:4px 0}
+.kpi .delta{font-size:12px;color:#6b7280}.up{color:#16a34a}.dn{color:#dc2626}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 24px 18px}
-.card{background:#0d1b2a;border-radius:12px;padding:18px;border:1px solid #1e3a5f}
-.card.full{grid-column:1/-1}.card h3{font-size:14px;color:#caf0f8;margin-bottom:12px;border-bottom:1px solid #1e3a5f;padding-bottom:8px}
-table{width:100%;border-collapse:collapse;font-size:12px}th{background:#1b2838;color:#90e0ef;padding:8px 10px;text-align:left;font-weight:600}
-td{padding:7px 10px;border-bottom:1px solid #1e3a5f}.winner{color:#00f5d4;font-weight:700}.loser{color:#ff6b6b}
+.card{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card.full{grid-column:1/-1}.card h3{font-size:14px;color:#111827;margin-bottom:12px;border-bottom:1px solid #e5e7eb;padding-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}th{background:#fff7ed;color:#ea580c;padding:8px 10px;text-align:left;font-weight:600}
+td{padding:7px 10px;border-bottom:1px solid #f3f4f6;color:#374151}.winner{color:#16a34a;font-weight:700}.loser{color:#dc2626}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
-.badge-high{background:#00f5d433;color:#00f5d4}.badge-med{background:#f9c74f33;color:#f9c74f}.badge-low{background:#90909033;color:#909090}
-select{background:#1b2838;color:#e0e0e0;border:1px solid #1e3a5f;padding:6px 12px;border-radius:6px;font-size:13px;margin-bottom:10px}
-.legend-row{display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap}.leg{display:flex;align-items:center;gap:5px;font-size:11px}
+.badge-high{background:rgba(34,197,94,.1);color:#16a34a}.badge-med{background:rgba(249,115,22,.1);color:#ea580c}.badge-low{background:rgba(156,163,175,.1);color:#6b7280}
+select{background:#fff;color:#111827;border:1px solid #e5e7eb;padding:6px 12px;border-radius:6px;font-size:13px;margin-bottom:10px;font-family:'Figtree',sans-serif}
+.legend-row{display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap}.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#374151}
 .leg span{width:12px;height:12px;border-radius:3px;display:inline-block}
 </style></head><body>
-<div class="hdr"><div><h1>A/B Experiment Tracker</h1><div class="sub">85 Active Experiments &middot; 14-Day Window &middot; Feb 19 – Mar 5, 2026</div></div><div style="text-align:right"><div style="color:#caf0f8;font-size:12px">SpeakX Analytics</div><div style="color:#90e0ef;font-size:11px">Auto-refreshed from prod DB</div></div></div>
+<div class="hdr"><div><h1>A/B Experiment Tracker</h1><div class="sub">85 Active Experiments &middot; 14-Day Window &middot; Feb 19 – Mar 5, 2026</div></div><div style="text-align:right"><div style="color:rgba(255,255,255,.9);font-size:12px">SpeakX Analytics</div><div style="color:rgba(255,255,255,.75);font-size:11px">Auto-refreshed from prod DB</div></div></div>
 
 <div class="kpi-row">
 <div class="kpi"><div class="lbl">Total Experiments</div><div class="val">85</div><div class="delta">All 4-arm (CONTROL/A/B/C)</div></div>
-<div class="kpi"><div class="lbl">High Impact (≥0.5% spread)</div><div class="val" style="color:#00f5d4">1</div><div class="delta">Exp #26 — 0.84% CVR spread</div></div>
-<div class="kpi"><div class="lbl">Medium Impact (0.2-0.5%)</div><div class="val" style="color:#f9c74f">9</div><div class="delta">Avg spread: 0.27%</div></div>
-<div class="kpi"><div class="lbl">Low Impact (&lt;0.2%)</div><div class="val" style="color:#909090">75</div><div class="delta">Avg spread: 0.07%</div></div>
+<div class="kpi"><div class="lbl">High Impact (≥0.5% spread)</div><div class="val" style="color:#16a34a">1</div><div class="delta">Exp #26 — 0.84% CVR spread</div></div>
+<div class="kpi"><div class="lbl">Medium Impact (0.2-0.5%)</div><div class="val" style="color:#ea580c">9</div><div class="delta">Avg spread: 0.27%</div></div>
+<div class="kpi"><div class="lbl">Low Impact (&lt;0.2%)</div><div class="val" style="color:#6b7280">75</div><div class="delta">Avg spread: 0.07%</div></div>
 </div>
 
 <div class="grid">
@@ -34,11 +35,11 @@ select{background:#1b2838;color:#e0e0e0;border:1px solid #1e3a5f;padding:6px 12p
 <canvas id="c1" height="70"></canvas></div>
 
 <div class="card"><h3>Experiment #26 — Daily CVR Trend (Highest Impact)</h3>
-<div class="legend-row"><div class="leg"><span style="background:#ff6b6b"></span>A</div><div class="leg"><span style="background:#f9c74f"></span>B</div><div class="leg"><span style="background:#00f5d4"></span>C</div><div class="leg"><span style="background:#90e0ef"></span>CONTROL</div></div>
+<div class="legend-row"><div class="leg"><span style="background:#ef4444"></span>A</div><div class="leg"><span style="background:#fbbf24"></span>B</div><div class="leg"><span style="background:#22c55e"></span>C</div><div class="leg"><span style="background:#3b82f6"></span>CONTROL</div></div>
 <canvas id="c2" height="120"></canvas></div>
 
 <div class="card"><h3>Experiment #4 — Daily CVR Trend</h3>
-<div class="legend-row"><div class="leg"><span style="background:#ff6b6b"></span>A</div><div class="leg"><span style="background:#f9c74f"></span>B</div><div class="leg"><span style="background:#00f5d4"></span>C</div><div class="leg"><span style="background:#90e0ef"></span>CONTROL</div></div>
+<div class="legend-row"><div class="leg"><span style="background:#ef4444"></span>A</div><div class="leg"><span style="background:#fbbf24"></span>B</div><div class="leg"><span style="background:#22c55e"></span>C</div><div class="leg"><span style="background:#3b82f6"></span>CONTROL</div></div>
 <canvas id="c3" height="120"></canvas></div>
 
 <div class="card full"><h3>Experiment #26 — Full Funnel Breakdown by Bucket</h3>
@@ -50,7 +51,7 @@ select{background:#1b2838;color:#e0e0e0;border:1px solid #1e3a5f;padding:6px 12p
 </div>
 
 <script>
-const BC={A:'#ff6b6b',B:'#f9c74f',C:'#00f5d4',CONTROL:'#90e0ef'};
+const BC={A:'#ef4444',B:'#fbbf24',C:'#22c55e',CONTROL:'#3b82f6'};
 const fN=n=>n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'K':n.toString();
 
 // Q1: Top 10 experiment funnel data
@@ -109,7 +110,7 @@ const buckets=['CONTROL','A','B','C'];
 new Chart(document.getElementById('c1'),{type:'bar',data:{
 labels:expIds.map(e=>'Exp #'+e),
 datasets:buckets.map(b=>({label:b,data:expIds.map(e=>{const r=expData.find(x=>x.e===e&&x.b===b);return r?r.cvr:0}),backgroundColor:BC[b]+'cc',borderRadius:4}))
-},options:{responsive:true,plugins:{legend:{labels:{color:'#caf0f8',font:{size:11}}}},scales:{x:{ticks:{color:'#90e0ef'},grid:{display:false}},y:{title:{display:true,text:'CVR %',color:'#90e0ef'},ticks:{color:'#90e0ef'},grid:{color:'#1e3a5f33'},min:4,max:6}}}});
+},options:{responsive:true,plugins:{legend:{labels:{color:'#374151',font:{size:11}}}},scales:{x:{ticks:{color:'#6b7280'},grid:{display:false}},y:{title:{display:true,text:'CVR %',color:'#6b7280'},ticks:{color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'},min:4,max:6}}}});
 
 // Chart 2: Exp 26 daily trend
 function trendChart(canvasId,expId){
@@ -118,7 +119,7 @@ const dates=[...new Set(rows.map(r=>r.d))];
 new Chart(document.getElementById(canvasId),{type:'line',data:{
 labels:dates.map(sd),
 datasets:buckets.map(b=>({label:b,data:dates.map(d=>{const r=rows.find(x=>x.d===d&&x.b===b);return r?r.c:null}),borderColor:BC[b],backgroundColor:BC[b]+'22',tension:0.3,pointRadius:2,borderWidth:2}))
-},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#90e0ef',font:{size:10}},grid:{display:false}},y:{title:{display:true,text:'CVR %',color:'#90e0ef'},ticks:{color:'#90e0ef'},grid:{color:'#1e3a5f33'}}}}});
+},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}},grid:{display:false}},y:{title:{display:true,text:'CVR %',color:'#6b7280'},ticks:{color:'#6b7280'},grid:{color:'rgba(0,0,0,.06)'}}}}});
 }
 trendChart('c2',26);
 trendChart('c3',4);
@@ -129,7 +130,7 @@ const steps=['Installs','FS Shown','OB Done','Login','Checkout','Orders','Paymen
 new Chart(document.getElementById('c4'),{type:'bar',data:{
 labels:steps,
 datasets:buckets.map(b=>{const r=e26.find(x=>x.b===b);return{label:b,data:[r.i,r.fs,r.ob,r.lo,r.ck,r.or,r.p],backgroundColor:BC[b]+'aa',borderRadius:3}})
-},options:{responsive:true,plugins:{legend:{labels:{color:'#caf0f8',font:{size:11}}}},scales:{x:{ticks:{color:'#90e0ef'},grid:{display:false}},y:{ticks:{color:'#90e0ef',callback:v=>fN(v)},grid:{color:'#1e3a5f33'}}}}});
+},options:{responsive:true,plugins:{legend:{labels:{color:'#374151',font:{size:11}}}},scales:{x:{ticks:{color:'#6b7280'},grid:{display:false}},y:{ticks:{color:'#6b7280',callback:v=>fN(v)},grid:{color:'rgba(0,0,0,.06)'}}}}});
 
 // Table
 const tbl=document.getElementById('tbl');

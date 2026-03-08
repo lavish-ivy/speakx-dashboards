@@ -5,30 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SpeakX · Marketing Performance</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f1a;color:#e0e0e0;min-height:100vh}
-.header{background:linear-gradient(135deg,#e17055,#fdcb6e,#00b894);padding:32px 40px;border-radius:0 0 20px 20px}
+body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff7ed;color:#111827;min-height:100vh}
+.header{background:linear-gradient(135deg,#ff4d00,#FF7810);padding:32px 40px;border-radius:0 0 20px 20px}
 .header h1{font-size:28px;font-weight:700;color:#fff}
-.header p{color:rgba(255,255,255,.85);font-size:14px;margin-top:4px}
+.header p{color:rgba(255,255,255,.9);font-size:14px;margin-top:4px}
 .container{max-width:1400px;margin:0 auto;padding:24px}
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
-.kpi{background:#1a1a2e;border-radius:14px;padding:20px;border:1px solid rgba(225,112,85,.2)}
-.kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#fdcb6e;margin-bottom:6px}
-.kpi .value{font-size:26px;font-weight:700;color:#fff}
+.kpi{background:#fff;border-radius:14px;padding:20px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#ea580c;margin-bottom:6px;font-weight:600}
+.kpi .value{font-size:26px;font-weight:700;color:#111827}
 .kpi .delta{font-size:12px;margin-top:4px}
-.kpi .delta.up{color:#00b894}.kpi .delta.down{color:#ff6b6b}
-.card{background:#1a1a2e;border-radius:14px;padding:24px;margin-bottom:24px;border:1px solid rgba(225,112,85,.15)}
-.card h3{font-size:16px;font-weight:600;color:#fdcb6e;margin-bottom:16px}
+.kpi .delta.up{color:#16a34a}.kpi .delta.down{color:#dc2626}
+.card{background:#fff;border-radius:14px;padding:24px;margin-bottom:24px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card h3{font-size:16px;font-weight:600;color:#111827;margin-bottom:16px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:10px 12px;border-bottom:2px solid #e17055;color:#fdcb6e;font-weight:600;font-size:11px;text-transform:uppercase}
-td{padding:9px 12px;border-bottom:1px solid rgba(225,112,85,.1)}
-tr:hover td{background:rgba(225,112,85,.08)}
+th{text-align:left;padding:10px 12px;border-bottom:2px solid #ff4d00;color:#ea580c;font-weight:600;font-size:11px;text-transform:uppercase}
+td{padding:9px 12px;border-bottom:1px solid #f3f4f6;color:#374151}
+tr:hover td{background:rgba(255,120,16,.04)}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
-.tag-high{background:rgba(0,184,148,.15);color:#00b894}
-.tag-med{background:rgba(253,203,110,.15);color:#fdcb6e}
-.tag-low{background:rgba(255,107,107,.15);color:#ff6b6b}
+.tag-high{background:rgba(34,197,94,.1);color:#16a34a}
+.tag-med{background:rgba(249,115,22,.1);color:#ea580c}
+.tag-low{background:rgba(239,68,68,.1);color:#dc2626}
 canvas{max-height:320px}
 @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
 </style>
@@ -53,7 +54,7 @@ const langData=[{"lang":"hi","installs":402642,"payments":25743,"cvr":6.39},{"la
 const fN=n=>n>=10000000?(n/10000000).toFixed(2)+'Cr':n>=100000?(n/100000).toFixed(1)+'L':n>=1000?(n/1000).toFixed(1)+'K':n.toLocaleString('en-IN');
 const shortDate=s=>{const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})};
 const langNames={hi:'Hindi',mr:'Marathi',ta:'Tamil',te:'Telugu',kn:'Kannada',bn:'Bengali',or:'Odia',gu:'Gujarati',ur:'Urdu',ml:'Malayalam',pa:'Punjabi',ne:'Nepali'};
-const chColors={Google:'#4285f4',Meta:'#0081fb',Organic:'#00b894','Other Paid':'#fdcb6e'};
+const chColors={Google:'#4285f4',Meta:'#0081fb',Organic:'#22c55e','Other Paid':'#f97316'};
 
 // Pivot daily channel
 const dates=[...new Set(dailyChannel.map(r=>r.dt))];
@@ -83,29 +84,29 @@ app.innerHTML=khtml;
 // Chart 1: Daily installs stacked by channel
 app.insertAdjacentHTML('beforeend',`<div class="grid-2"><div class="card"><h3>Daily Installs by Channel</h3><canvas id="c1"></canvas></div><div class="card"><h3>Daily Revenue (Trial + Monthly)</h3><canvas id="c2"></canvas></div></div>`);
 
-new Chart(document.getElementById('c1'),{type:'bar',data:{labels:dates.map(shortDate),datasets:channels.map(c=>({label:c,data:pivot(c,'installs'),backgroundColor:chColors[c]+'cc'}))},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>fN(v)}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
+new Chart(document.getElementById('c1'),{type:'bar',data:{labels:dates.map(shortDate),datasets:channels.map(c=>({label:c,data:pivot(c,'installs'),backgroundColor:chColors[c]+'cc'}))},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#6b7280',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>fN(v)}}},plugins:{legend:{labels:{color:'#374151'}}}}});
 
-new Chart(document.getElementById('c2'),{type:'bar',data:{labels:revenueDaily.map(r=>shortDate(r.dt)),datasets:[{label:'Trial ₹',data:revenueDaily.map(r=>r.trial_revenue),backgroundColor:'#fdcb6ecc'},{label:'Monthly ₹',data:revenueDaily.map(r=>r.monthly_revenue),backgroundColor:'#00b894cc'}]},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#888',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>'₹'+fN(v)}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
+new Chart(document.getElementById('c2'),{type:'bar',data:{labels:revenueDaily.map(r=>shortDate(r.dt)),datasets:[{label:'Trial ₹',data:revenueDaily.map(r=>r.trial_revenue),backgroundColor:'#f97316cc'},{label:'Monthly ₹',data:revenueDaily.map(r=>r.monthly_revenue),backgroundColor:'#22c55ecc'}]},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#6b7280',maxRotation:45,autoSkip:true,maxTicksLimit:15}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>'₹'+fN(v)}}},plugins:{legend:{labels:{color:'#374151'}}}}});
 
 // Chart 2: Weekly channel CVR trend
 app.insertAdjacentHTML('beforeend',`<div class="grid-2"><div class="card"><h3>Weekly CVR by Channel (12 weeks)</h3><canvas id="c3"></canvas></div><div class="card"><h3>Install Mix by Language (30 days)</h3><canvas id="c4"></canvas></div></div>`);
 
 const weeks=[...new Set(weeklyChannel.map(r=>r.week_start))];
 const wPivot=(ch)=>weeks.map(w=>{const r=weeklyChannel.find(x=>x.week_start===w&&x.channel_group===ch);return r?r.cvr:0});
-new Chart(document.getElementById('c3'),{type:'line',data:{labels:weeks.map(shortDate),datasets:channels.map(c=>({label:c,data:wPivot(c),borderColor:chColors[c],tension:.3,pointRadius:3}))},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>v+'%'}},x:{ticks:{color:'#888'}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
+new Chart(document.getElementById('c3'),{type:'line',data:{labels:weeks.map(shortDate),datasets:channels.map(c=>({label:c,data:wPivot(c),borderColor:chColors[c],tension:.3,pointRadius:3}))},options:{responsive:true,interaction:{mode:'index',intersect:false},scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>v+'%'}},x:{ticks:{color:'#6b7280'}}},plugins:{legend:{labels:{color:'#374151'}}}}});
 
 // Language doughnut
 const langFiltered=langData.filter(r=>r.installs>5000);
-new Chart(document.getElementById('c4'),{type:'doughnut',data:{labels:langFiltered.map(r=>langNames[r.lang]||r.lang),datasets:[{data:langFiltered.map(r=>r.installs),backgroundColor:['#e17055','#fdcb6e','#00b894','#74b9ff','#a29bfe','#fd79a8','#00cec9','#636e72','#ff6b6b','#dfe6e9']}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#ccc',font:{size:11}}}}}});
+new Chart(document.getElementById('c4'),{type:'doughnut',data:{labels:langFiltered.map(r=>langNames[r.lang]||r.lang),datasets:[{data:langFiltered.map(r=>r.installs),backgroundColor:['#ff4d00','#FF7810','#f97316','#3b82f6','#0ea5e9','#ea580c','#22c55e','#6b7280','#ef4444','#d1d5db']}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#374151',font:{size:11}}}}}});
 
 // Chart 3: Language CVR bar
 app.insertAdjacentHTML('beforeend',`<div class="card"><h3>Conversion Rate by Language (30 days, ≥5K installs)</h3><canvas id="c5"></canvas></div>`);
-new Chart(document.getElementById('c5'),{type:'bar',data:{labels:langFiltered.map(r=>langNames[r.lang]||r.lang),datasets:[{label:'CVR %',data:langFiltered.map(r=>r.cvr),backgroundColor:langFiltered.map(r=>r.cvr>=8?'#00b894cc':r.cvr>=5?'#fdcb6ecc':'#ff6b6bcc'),borderRadius:6}]},options:{responsive:true,scales:{y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>v+'%'}},x:{ticks:{color:'#ccc'}}},plugins:{legend:{display:false}}}});
+new Chart(document.getElementById('c5'),{type:'bar',data:{labels:langFiltered.map(r=>langNames[r.lang]||r.lang),datasets:[{label:'CVR %',data:langFiltered.map(r=>r.cvr),backgroundColor:langFiltered.map(r=>r.cvr>=8?'#22c55ecc':r.cvr>=5?'#f97316cc':'#ef4444cc'),borderRadius:6}]},options:{responsive:true,scales:{y:{grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>v+'%'}},x:{ticks:{color:'#374151'}}},plugins:{legend:{display:false}}}});
 
 // Weekly channel stacked installs
 app.insertAdjacentHTML('beforeend',`<div class="card"><h3>Weekly Install Volume by Channel (12 weeks)</h3><canvas id="c6"></canvas></div>`);
 const wInstalls=(ch)=>weeks.map(w=>{const r=weeklyChannel.find(x=>x.week_start===w&&x.channel_group===ch);return r?r.installs:0});
-new Chart(document.getElementById('c6'),{type:'bar',data:{labels:weeks.map(shortDate),datasets:channels.map(c=>({label:c,data:wInstalls(c),backgroundColor:chColors[c]+'cc'}))},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#888'}},y:{stacked:true,grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#aaa',callback:v=>fN(v)}}},plugins:{legend:{labels:{color:'#ccc'}}}}});
+new Chart(document.getElementById('c6'),{type:'bar',data:{labels:weeks.map(shortDate),datasets:channels.map(c=>({label:c,data:wInstalls(c),backgroundColor:chColors[c]+'cc'}))},options:{responsive:true,scales:{x:{stacked:true,ticks:{color:'#6b7280'}},y:{stacked:true,grid:{color:'rgba(0,0,0,.06)'},ticks:{color:'#6b7280',callback:v=>fN(v)}}},plugins:{legend:{labels:{color:'#374151'}}}}});
 
 // Language table
 let lhtml='<div class="card"><h3>Language Performance (30 days)</h3><div style="overflow-x:auto"><table><thead><tr><th>Language</th><th style="text-align:right">Installs</th><th style="text-align:right">Payments</th><th style="text-align:right">CVR %</th><th style="text-align:right">Share of Installs</th></tr></thead><tbody>';
@@ -117,7 +118,7 @@ langData.forEach(r=>{
 lhtml+='</tbody></table></div></div>';
 app.insertAdjacentHTML('beforeend',lhtml);
 
-app.insertAdjacentHTML('beforeend','<p style="text-align:center;color:#555;font-size:11px;margin-top:20px">SpeakX Marketing Performance · Auto-generated · Data excludes partial current day</p>');
+app.insertAdjacentHTML('beforeend','<p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:20px">SpeakX Marketing Performance · Auto-generated · Data excludes partial current day</p>');
 </script>
 </body>
 </html>
