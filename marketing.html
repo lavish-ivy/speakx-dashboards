@@ -296,19 +296,18 @@ function renderDashboard(filters) {
 
     F.setStatus('Loading live data...', 'loading');
 
-    // Try to load live data — replaces EMBEDDED_ arrays when successful
-    var live;
-    live = await DL.fetchSQL('mkt_daily_channel');
-    if (live && live.length) { EMBEDDED_dailyChannel = live; liveCount++; }
-
-    live = await DL.fetchSQL('mkt_revenue_daily');
-    if (live && live.length) { EMBEDDED_revenueDaily = live; liveCount++; }
-
-    live = await DL.fetchSQL('mkt_weekly_channel');
-    if (live && live.length) { EMBEDDED_weeklyChannel = live; liveCount++; }
-
-    live = await DL.fetchSQL('mkt_lang_data');
-    if (live && live.length) { EMBEDDED_langData = live; liveCount++; }
+    // Load all 4 datasets in parallel
+    try {
+      var data = await DL.fetchAllSQL([
+        'mkt_daily_channel', 'mkt_revenue_daily', 'mkt_weekly_channel', 'mkt_lang_data'
+      ]);
+      if (data.mkt_daily_channel && data.mkt_daily_channel.length) { EMBEDDED_dailyChannel = data.mkt_daily_channel; liveCount++; }
+      if (data.mkt_revenue_daily && data.mkt_revenue_daily.length) { EMBEDDED_revenueDaily = data.mkt_revenue_daily; liveCount++; }
+      if (data.mkt_weekly_channel && data.mkt_weekly_channel.length) { EMBEDDED_weeklyChannel = data.mkt_weekly_channel; liveCount++; }
+      if (data.mkt_lang_data && data.mkt_lang_data.length) { EMBEDDED_langData = data.mkt_lang_data; liveCount++; }
+    } catch (err) {
+      console.warn('[MKT] Error loading live data:', err.message);
+    }
 
     // Initialize filters
     F.init('filters', [

@@ -370,18 +370,19 @@ function renderDashboard(filters) {
     return rows;
   }
 
-  // ── Experiment summary ──
-  var live = await DL.fetchSQL('ab_experiment_summary');
-  if (live && live.length) {
-    EMBEDDED_expData = addSpread(live);
-    liveCount++;
-  }
-
-  // ── Daily trend ──
-  live = await DL.fetchSQL('ab_daily_trend');
-  if (live && live.length) {
-    EMBEDDED_dailyTrend = live;
-    liveCount++;
+  // Load both datasets in parallel
+  try {
+    var data = await DL.fetchAllSQL(['ab_experiment_summary', 'ab_daily_trend']);
+    if (data.ab_experiment_summary && data.ab_experiment_summary.length) {
+      EMBEDDED_expData = addSpread(data.ab_experiment_summary);
+      liveCount++;
+    }
+    if (data.ab_daily_trend && data.ab_daily_trend.length) {
+      EMBEDDED_dailyTrend = data.ab_daily_trend;
+      liveCount++;
+    }
+  } catch (err) {
+    console.warn('[AB] Error loading live data:', err.message);
   }
 
   // Build experiment options from (possibly live) data

@@ -247,12 +247,16 @@ function renderDashboard(filters) {
     }
 
     // ── Green cohort weekly trend (maps to EMBEDDED_gt) ──
-    var live = await DL.fetchSQL('cohort_green_weekly');
-    if (live && live.length) {
+    try {
+      var live = await DL.fetchSQL('cohort_green_weekly');
+      if (live && live.length) {
         EMBEDDED_gt = live.map(function(r) {
             return { w: isoToShort(r.w), t: r.t, g: r.g, gp: parseFloat(r.gp), pd: parseFloat(r.pd), dl: parseFloat(r.dl) };
         });
         liveCount++;
+      }
+    } catch (err) {
+      console.warn('[COHORT] Error loading live data:', err.message);
     }
 
     // Initialize filters

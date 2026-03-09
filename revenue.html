@@ -518,58 +518,50 @@ function isoToShortDate(iso) {
 
     F.setStatus('Loading live data...', 'loading');
 
-    // ── Daily revenue (transform dt → d) ──
-    var live = await DL.fetchSQL('rev_daily');
-    if (live && live.length) {
-        EMBEDDED_DAILY_REV = live.map(function(r) {
+    // Load all 6 datasets in parallel
+    try {
+      var data = await DL.fetchAllSQL([
+        'rev_daily', 'rev_weekly', 'rev_payment_method', 'rev_by_type', 'rev_success_rate', 'rev_providers'
+      ]);
+
+      if (data.rev_daily && data.rev_daily.length) {
+        EMBEDDED_DAILY_REV = data.rev_daily.map(function(r) {
             return { d: isoToShortDate(r.dt), trial: r.trial, monthly: r.monthly, total: r.total, tTxn: r.tTxn, mTxn: r.mTxn, txn: r.txn };
         });
         liveCount++;
-    }
-
-    // ── Weekly revenue (transform week_start → w) ──
-    live = await DL.fetchSQL('rev_weekly');
-    if (live && live.length) {
-        EMBEDDED_WEEKLY_REV = live.map(function(r) {
+      }
+      if (data.rev_weekly && data.rev_weekly.length) {
+        EMBEDDED_WEEKLY_REV = data.rev_weekly.map(function(r) {
             return { w: isoToShortDate(r.week_start), trial: r.trial, monthly: r.monthly, total: r.total, payers: r.payers, arpu: r.arpu };
         });
         liveCount++;
-    }
-
-    // ── Payment methods (add avg) ──
-    live = await DL.fetchSQL('rev_payment_method');
-    if (live && live.length) {
-        EMBEDDED_PAY_METHODS = live.map(function(r) {
+      }
+      if (data.rev_payment_method && data.rev_payment_method.length) {
+        EMBEDDED_PAY_METHODS = data.rev_payment_method.map(function(r) {
             return { method: r.method, revenue: r.revenue, txns: r.txns, avg: r.txns ? Math.round(r.revenue * 100 / r.txns) / 100 : 0 };
         });
         liveCount++;
-    }
-
-    // ── Revenue by type/channel (compose ch label) ──
-    live = await DL.fetchSQL('rev_by_type');
-    if (live && live.length) {
-        EMBEDDED_CHANNELS = live.map(function(r) {
+      }
+      if (data.rev_by_type && data.rev_by_type.length) {
+        EMBEDDED_CHANNELS = data.rev_by_type.map(function(r) {
             return { ch: r.checkout_type + ' \xB7 ' + (r.plan === '7' ? 'Trial' : r.plan === '30' ? 'Monthly' : r.plan === '365' ? 'Annual' : r.plan === '90' ? 'Quarterly' : r.plan), rev: r.revenue, txns: r.txns };
         });
         liveCount++;
-    }
-
-    // ── Payment success rate (transform dt → d, add derived fields) ──
-    live = await DL.fetchSQL('rev_success_rate');
-    if (live && live.length) {
-        EMBEDDED_SUCCESS_RATE = live.map(function(r) {
+      }
+      if (data.rev_success_rate && data.rev_success_rate.length) {
+        EMBEDDED_SUCCESS_RATE = data.rev_success_rate.map(function(r) {
             return { d: isoToShortDate(r.dt), attempts: r.attempts, success: r.success, fail: r.attempts - r.success, refund: 0, rate: r.success_rate };
         });
         liveCount++;
-    }
-
-    // ── Payment providers (rename fields) ──
-    live = await DL.fetchSQL('rev_providers');
-    if (live && live.length) {
-        EMBEDDED_PROVIDERS = live.map(function(r) {
+      }
+      if (data.rev_providers && data.rev_providers.length) {
+        EMBEDDED_PROVIDERS = data.rev_providers.map(function(r) {
             return { name: r.provider, attempts: r.total_txns, successes: r.success_txns, rate: r.success_rate, rev: r.revenue };
         });
         liveCount++;
+      }
+    } catch (err) {
+      console.warn('[REV] Error loading live data:', err.message);
     }
 
     // Initialize filters

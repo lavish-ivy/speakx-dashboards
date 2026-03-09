@@ -12,7 +12,7 @@
 window.SPEAKX = window.SPEAKX || {};
 
 window.SPEAKX.CONFIG = {
-  REDASH_URL: 'https://redash.speakx.com',
+  REDASH_URL: 'https://redash-proxy.speakx-proxy.workers.dev',  // CORS proxy for Redash
   REDASH_USER_API_KEY: '',  // ← Your Redash user API key (Profile → Account → API Key)
   DATA_SOURCE_ID: 1,        // prod-gcp-db
 
@@ -65,9 +65,9 @@ window.SPEAKX.CONFIG = {
     cohort_green_weekly: "SELECT DATE_TRUNC('week', trial_payment_date)::DATE AS w, COUNT(*) AS t, COUNT(*) FILTER (WHERE trial_green_cohort_users = 'Yes') AS g, ROUND(COUNT(*) FILTER (WHERE trial_green_cohort_users = 'Yes') * 100.0 / NULLIF(COUNT(*), 0), 1) AS gp, ROUND(AVG(trial_practice_days)::numeric, 2) AS pd, ROUND(AVG(d0_lesson_count + d1_lesson_count + d2_lesson_count)::numeric / NULLIF(AVG(trial_practice_days), 0), 1) AS dl FROM trial_user_consumption WHERE trial_payment_date >= CURRENT_DATE - INTERVAL '180 days' GROUP BY 1 ORDER BY 1",
 
     // ── AB Experiments Dashboard ──
-    ab_experiment_summary: "SELECT exp.key::int AS e, exp.value::text AS b, SUM(installs) AS i, SUM(fs_shown) AS fs, SUM(ob_completed) AS ob, SUM(login_users) AS lo, SUM(checkout_load) AS ck, SUM(order_created) AS \"or\", SUM(payments) AS p, ROUND(SUM(payments)*100.0/NULLIF(SUM(installs),0),2) AS cvr FROM d0_conversion_funnel, jsonb_each_text(test_bucket) AS exp WHERE install_date >= CURRENT_DATE - INTERVAL '90 days' AND exp.value IS NOT NULL GROUP BY 1, 2 ORDER BY 1, 2",
+    ab_experiment_summary: "SELECT exp.key::int AS e, exp.value::text AS b, SUM(installs) AS i, SUM(fs_shown) AS fs, SUM(ob_completed) AS ob, SUM(login_users) AS lo, SUM(checkout_load) AS ck, SUM(order_created) AS \"or\", SUM(payments) AS p, ROUND(SUM(payments)*100.0/NULLIF(SUM(installs),0),2) AS cvr FROM d0_conversion_funnel, jsonb_each_text(test_bucket) AS exp WHERE install_date >= CURRENT_DATE - INTERVAL '90 days' AND test_bucket IS NOT NULL AND jsonb_typeof(test_bucket) = 'object' AND exp.value IS NOT NULL GROUP BY 1, 2 ORDER BY 1, 2",
 
-    ab_daily_trend: "SELECT install_date::text AS d, exp.key::int AS e, exp.value::text AS b, ROUND(SUM(payments)*100.0/NULLIF(SUM(installs),0),2) AS c FROM d0_conversion_funnel, jsonb_each_text(test_bucket) AS exp WHERE install_date >= CURRENT_DATE - INTERVAL '30 days' AND exp.value IS NOT NULL GROUP BY 1, 2, 3 ORDER BY 1, 2, 3",
+    ab_daily_trend: "SELECT install_date::text AS d, exp.key::int AS e, exp.value::text AS b, ROUND(SUM(payments)*100.0/NULLIF(SUM(installs),0),2) AS c FROM d0_conversion_funnel, jsonb_each_text(test_bucket) AS exp WHERE install_date >= CURRENT_DATE - INTERVAL '30 days' AND test_bucket IS NOT NULL AND jsonb_typeof(test_bucket) = 'object' AND exp.value IS NOT NULL GROUP BY 1, 2, 3 ORDER BY 1, 2, 3",
   },
 
   REFRESH_INTERVAL: 0,

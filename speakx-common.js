@@ -94,28 +94,60 @@ window.SPEAKX.DataLoader = {
     }
   },
 
+  /**
+   * Fetch multiple SQL queries in parallel (much faster than sequential).
+   * @param {Array<string>} sqlKeys — array of keys from CONFIG.SQL
+   * @returns {Promise<Object>} — map of { key: rows[] | null }
+   */
+  async fetchAllSQL(sqlKeys) {
+    var self = this;
+    var promises = sqlKeys.map(function(key) {
+      return self.fetchSQL(key).then(function(rows) {
+        return { key: key, rows: rows };
+      }).catch(function(err) {
+        console.warn('[SpeakX] fetchAllSQL: ' + key + ' failed: ' + err.message);
+        return { key: key, rows: null };
+      });
+    });
+    var settled = await Promise.all(promises);
+    var results = {};
+    settled.forEach(function(r) { results[r.key] = r.rows; });
+    return results;
+  },
+
   /** Poll a Redash job until it completes */
   async _pollJob(jobId, cfg) {
-    var maxAttempts = 60;
+    var maxAttempts = 45;
     for (var i = 0; i < maxAttempts; i++) {
-      await new Promise(function(r) { setTimeout(r, 1000); });
-      var res = await fetch(cfg.REDASH_URL + '/api/jobs/' + jobId, {
-        headers: { 'Authorization': 'Key ' + cfg.REDASH_USER_API_KEY }
-      });
-      var json = await res.json();
-      var status = json.job && json.job.status;
-      if (status === 3) {
-        var resultId = json.job.query_result_id;
-        var resResult = await fetch(cfg.REDASH_URL + '/api/query_results/' + resultId, {
+      await new Promise(function(r) { setTimeout(r, 1500); });
+      try {
+        var res = await fetch(cfg.REDASH_URL + '/api/jobs/' + jobId, {
           headers: { 'Authorization': 'Key ' + cfg.REDASH_USER_API_KEY }
         });
-        return await resResult.json();
-      }
-      if (status === 4 || status === 5) {
-        throw new Error('Query failed: ' + (json.job.error || 'unknown'));
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var json = await res.json();
+        var status = json.job && json.job.status;
+        if (status === 3) {
+          var resultId = json.job.query_result_id;
+          var resResult = await fetch(cfg.REDASH_URL + '/api/query_results/' + resultId, {
+            headers: { 'Authorization': 'Key ' + cfg.REDASH_USER_API_KEY }
+          });
+          if (!resResult.ok) throw new Error('Result fetch HTTP ' + resResult.status);
+          return await resResult.json();
+        }
+        if (status === 4 || status === 5) {
+          // Query itself failed — don't retry, propagate immediately
+          throw new Error('Query failed: ' + (json.job.error || 'unknown'));
+        }
+        // status 1 or 2 = still running, keep polling
+      } catch (err) {
+        // If it's a query failure (not a network error), stop retrying
+        if (err.message.startsWith('Query failed:')) throw err;
+        if (i >= maxAttempts - 1) throw err;
+        console.warn('[SpeakX] pollJob ' + jobId + ' attempt ' + (i + 1) + ': ' + err.message);
       }
     }
-    throw new Error('Query timed out after ' + maxAttempts + 's');
+    throw new Error('Query timed out after ' + maxAttempts + ' attempts');
   },
 
   /** Clear all cached data (used by Refresh button) */
