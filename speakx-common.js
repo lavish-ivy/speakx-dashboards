@@ -242,9 +242,32 @@ window.SPEAKX.Filters = {
       bar.appendChild(group);
     });
 
-    // Refresh button
+    // Action buttons (blur toggle + refresh)
     const actGroup = document.createElement('div');
     actGroup.className = 'spx-filter-group spx-filter-actions';
+
+    // Blur toggle button
+    const blurBtn = document.createElement('button');
+    blurBtn.className = 'spx-btn-blur';
+    blurBtn.id = 'spx-blur-toggle';
+    blurBtn.title = 'Hide sensitive numbers (Ctrl+B)';
+    blurBtn.textContent = '\uD83D\uDC41 Hide Numbers';
+    var isBlurred = localStorage.getItem('spx-blur') === '1';
+    if (isBlurred) {
+      document.body.classList.add('spx-blur-active');
+      blurBtn.classList.add('active');
+      blurBtn.textContent = '\uD83D\uDC41\u200D\uD83D\uDDE8 Numbers Hidden';
+    }
+    blurBtn.addEventListener('click', function() {
+      document.body.classList.toggle('spx-blur-active');
+      var on = document.body.classList.contains('spx-blur-active');
+      localStorage.setItem('spx-blur', on ? '1' : '0');
+      blurBtn.classList.toggle('active', on);
+      blurBtn.textContent = on ? '\uD83D\uDC41\u200D\uD83D\uDDE8 Numbers Hidden' : '\uD83D\uDC41 Hide Numbers';
+    });
+    actGroup.appendChild(blurBtn);
+
+    // Refresh button
     const refreshBtn = document.createElement('button');
     refreshBtn.className = 'spx-btn-refresh';
     refreshBtn.id = 'spx-refresh';
@@ -257,6 +280,14 @@ window.SPEAKX.Filters = {
     });
     actGroup.appendChild(refreshBtn);
     bar.appendChild(actGroup);
+
+    // Keyboard shortcut: Ctrl+B toggles blur
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        blurBtn.click();
+      }
+    });
 
     container.appendChild(bar);
 

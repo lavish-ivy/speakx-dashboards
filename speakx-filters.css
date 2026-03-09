@@ -151,6 +151,58 @@
 .spx-status-loading { color: #6b7280; }
 .spx-status-error { color: #dc2626; }
 
+/* Blur toggle button */
+.spx-btn-blur {
+  font-family: 'Figtree', -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.spx-btn-blur:hover {
+  border-color: #fed7aa;
+  color: #ea580c;
+}
+.spx-btn-blur.active {
+  background: rgba(255,77,0,0.08);
+  border-color: rgba(255,77,0,0.3);
+  color: #ea580c;
+}
+
+/* Blur mode — hides sensitive numbers when body has this class */
+body.spx-blur-active .kpi .value,
+body.spx-blur-active .kpi .val,
+body.spx-blur-active .kpi .v,
+body.spx-blur-active .kpi-v,
+body.spx-blur-active .kpi .delta,
+body.spx-blur-active .kpi .d,
+body.spx-blur-active .kpi-c,
+body.spx-blur-active .dt tbody td,
+body.spx-blur-active .badge,
+body.spx-blur-active canvas {
+  filter: blur(6px);
+  -webkit-filter: blur(6px);
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
+body.spx-blur-active .kpi .label,
+body.spx-blur-active .kpi .lbl,
+body.spx-blur-active .kpi .l,
+body.spx-blur-active .kpi-l,
+body.spx-blur-active .dt thead th,
+body.spx-blur-active .sec,
+body.spx-blur-active .cc h3,
+body.spx-blur-active .cc .cs {
+  filter: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .spx-filter-bar {
