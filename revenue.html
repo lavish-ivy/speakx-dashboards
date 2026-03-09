@@ -516,69 +516,74 @@ function isoToShortDate(iso) {
     var cfg = window.SPEAKX.CONFIG;
     var liveCount = 0;
 
-    F.setStatus('Loading live data...', 'loading');
+    /** Fetch live data, update EMBEDDED vars, re-render, set status */
+    async function fetchAndRender() {
+      var count = 0;
+      F.setStatus('Loading live data...', 'loading');
+      try {
+        var data = await DL.fetchAllSQL([
+          'rev_daily', 'rev_weekly', 'rev_payment_method', 'rev_by_type', 'rev_success_rate', 'rev_providers'
+        ]);
 
-    // Load all 6 datasets in parallel
-    try {
-      var data = await DL.fetchAllSQL([
-        'rev_daily', 'rev_weekly', 'rev_payment_method', 'rev_by_type', 'rev_success_rate', 'rev_providers'
-      ]);
-
-      if (data.rev_daily && data.rev_daily.length) {
-        EMBEDDED_DAILY_REV = data.rev_daily.map(function(r) {
-            return { d: isoToShortDate(r.dt), trial: r.trial, monthly: r.monthly, total: r.total, tTxn: r.tTxn, mTxn: r.mTxn, txn: r.txn };
-        });
-        liveCount++;
+        if (data.rev_daily && data.rev_daily.length) {
+          EMBEDDED_DAILY_REV = data.rev_daily.map(function(r) {
+              return { d: isoToShortDate(r.dt), trial: r.trial, monthly: r.monthly, total: r.total, tTxn: r.tTxn, mTxn: r.mTxn, txn: r.txn };
+          });
+          count++;
+        }
+        if (data.rev_weekly && data.rev_weekly.length) {
+          EMBEDDED_WEEKLY_REV = data.rev_weekly.map(function(r) {
+              return { w: isoToShortDate(r.week_start), trial: r.trial, monthly: r.monthly, total: r.total, payers: r.payers, arpu: r.arpu };
+          });
+          count++;
+        }
+        if (data.rev_payment_method && data.rev_payment_method.length) {
+          EMBEDDED_PAY_METHODS = data.rev_payment_method.map(function(r) {
+              return { method: r.method, revenue: r.revenue, txns: r.txns, avg: r.txns ? Math.round(r.revenue * 100 / r.txns) / 100 : 0 };
+          });
+          count++;
+        }
+        if (data.rev_by_type && data.rev_by_type.length) {
+          EMBEDDED_CHANNELS = data.rev_by_type.map(function(r) {
+              return { ch: r.checkout_type + ' \xB7 ' + (r.plan === '7' ? 'Trial' : r.plan === '30' ? 'Monthly' : r.plan === '365' ? 'Annual' : r.plan === '90' ? 'Quarterly' : r.plan), rev: r.revenue, txns: r.txns };
+          });
+          count++;
+        }
+        if (data.rev_success_rate && data.rev_success_rate.length) {
+          EMBEDDED_SUCCESS_RATE = data.rev_success_rate.map(function(r) {
+              return { d: isoToShortDate(r.dt), attempts: r.attempts, success: r.success, fail: r.attempts - r.success, refund: 0, rate: r.success_rate };
+          });
+          count++;
+        }
+        if (data.rev_providers && data.rev_providers.length) {
+          EMBEDDED_PROVIDERS = data.rev_providers.map(function(r) {
+              return { name: r.provider, attempts: r.total_txns, successes: r.success_txns, rate: r.success_rate, rev: r.revenue };
+          });
+          count++;
+        }
+      } catch (err) {
+        console.warn('[REV] Error loading live data:', err.message);
       }
-      if (data.rev_weekly && data.rev_weekly.length) {
-        EMBEDDED_WEEKLY_REV = data.rev_weekly.map(function(r) {
-            return { w: isoToShortDate(r.week_start), trial: r.trial, monthly: r.monthly, total: r.total, payers: r.payers, arpu: r.arpu };
-        });
-        liveCount++;
+      renderDashboard(F.getState());
+      if (count > 0) {
+          F.setStatus('Live data from Redash \xB7 ' + count + '/6 datasets', 'live');
+      } else if (cfg && cfg.REDASH_USER_API_KEY) {
+          F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
+      } else {
+          F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
       }
-      if (data.rev_payment_method && data.rev_payment_method.length) {
-        EMBEDDED_PAY_METHODS = data.rev_payment_method.map(function(r) {
-            return { method: r.method, revenue: r.revenue, txns: r.txns, avg: r.txns ? Math.round(r.revenue * 100 / r.txns) / 100 : 0 };
-        });
-        liveCount++;
-      }
-      if (data.rev_by_type && data.rev_by_type.length) {
-        EMBEDDED_CHANNELS = data.rev_by_type.map(function(r) {
-            return { ch: r.checkout_type + ' \xB7 ' + (r.plan === '7' ? 'Trial' : r.plan === '30' ? 'Monthly' : r.plan === '365' ? 'Annual' : r.plan === '90' ? 'Quarterly' : r.plan), rev: r.revenue, txns: r.txns };
-        });
-        liveCount++;
-      }
-      if (data.rev_success_rate && data.rev_success_rate.length) {
-        EMBEDDED_SUCCESS_RATE = data.rev_success_rate.map(function(r) {
-            return { d: isoToShortDate(r.dt), attempts: r.attempts, success: r.success, fail: r.attempts - r.success, refund: 0, rate: r.success_rate };
-        });
-        liveCount++;
-      }
-      if (data.rev_providers && data.rev_providers.length) {
-        EMBEDDED_PROVIDERS = data.rev_providers.map(function(r) {
-            return { name: r.provider, attempts: r.total_txns, successes: r.success_txns, rate: r.success_rate, rev: r.revenue };
-        });
-        liveCount++;
-      }
-    } catch (err) {
-      console.warn('[REV] Error loading live data:', err.message);
     }
 
-    // Initialize filters
+    // Initialize filters first (creates status element needed by fetchAndRender)
     F.init('filters', [
         { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 }
     ], function(state) { renderDashboard(state); });
 
-    renderDashboard(F.getState());
+    // Fetch live data and render
+    await fetchAndRender();
 
-    // Set accurate status
-    if (liveCount > 0) {
-        F.setStatus('Live data from Redash \xB7 ' + liveCount + '/6 datasets', 'live');
-    } else if (cfg && cfg.REDASH_USER_API_KEY) {
-        F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
-    } else {
-        F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
-    }
+    // Register refresh handler for the Refresh button
+    window.SPEAKX._refreshFn = fetchAndRender;
 })();
 </script>
 </body>

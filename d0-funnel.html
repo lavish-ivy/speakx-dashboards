@@ -416,24 +416,32 @@ function renderDashboard(filters) {
   var cfg = window.SPEAKX.CONFIG;
   var liveCount = 0;
 
-  if (cfg && cfg.REDASH_USER_API_KEY) {
+  /** Fetch live data, update EMBEDDED vars, re-render, set status */
+  async function fetchAndRender() {
+    var count = 0;
     F.setStatus('Loading live data from Redash...', 'loading');
+    try {
+      var data = await DL.fetchAllSQL([
+        'd0_daily_funnel', 'd0_channel_funnel', 'd0_weekly_funnel', 'd0_campaign_data'
+      ]);
+      if (data.d0_daily_funnel && data.d0_daily_funnel.length) { EMBEDDED_dailyFunnel = data.d0_daily_funnel; count++; }
+      if (data.d0_channel_funnel && data.d0_channel_funnel.length) { EMBEDDED_channelFunnel = data.d0_channel_funnel; count++; }
+      if (data.d0_weekly_funnel && data.d0_weekly_funnel.length) { EMBEDDED_weeklyFunnel = data.d0_weekly_funnel; count++; }
+      if (data.d0_campaign_data && data.d0_campaign_data.length) { EMBEDDED_campaignData = data.d0_campaign_data; count++; }
+    } catch (err) {
+      console.warn('[D0] Error loading live data:', err.message);
+    }
+    renderDashboard(F.getState());
+    if (count > 0) {
+      F.setStatus('Live data from Redash \u00B7 ' + count + '/4 datasets \u00B7 ' + EMBEDDED_dailyFunnel.length + ' days', 'live');
+    } else if (cfg && cfg.REDASH_USER_API_KEY) {
+      F.setStatus('Failed to load live data \u00B7 Using snapshot', 'error');
+    } else {
+      F.setStatus('Snapshot data \u00B7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
+    }
   }
 
-  // Load all 4 datasets in parallel (much faster than sequential)
-  try {
-    var data = await DL.fetchAllSQL([
-      'd0_daily_funnel', 'd0_channel_funnel', 'd0_weekly_funnel', 'd0_campaign_data'
-    ]);
-    if (data.d0_daily_funnel && data.d0_daily_funnel.length) { EMBEDDED_dailyFunnel = data.d0_daily_funnel; liveCount++; }
-    if (data.d0_channel_funnel && data.d0_channel_funnel.length) { EMBEDDED_channelFunnel = data.d0_channel_funnel; liveCount++; }
-    if (data.d0_weekly_funnel && data.d0_weekly_funnel.length) { EMBEDDED_weeklyFunnel = data.d0_weekly_funnel; liveCount++; }
-    if (data.d0_campaign_data && data.d0_campaign_data.length) { EMBEDDED_campaignData = data.d0_campaign_data; liveCount++; }
-  } catch (err) {
-    console.warn('[D0] Error loading live data:', err.message);
-  }
-
-  // Initialize filters
+  // Initialize filters first (creates status element needed by fetchAndRender)
   var channelOptions = [
     {value:'all', text:'All Channels'},
     {value:'Google', text:'Google'},
@@ -452,16 +460,11 @@ function renderDashboard(filters) {
     renderDashboard(state);
   });
 
-  renderDashboard(F.getState());
+  // Fetch live data and render
+  await fetchAndRender();
 
-  // Set accurate status
-  if (liveCount > 0) {
-    F.setStatus('Live data from Redash \u00B7 ' + liveCount + '/4 datasets \u00B7 ' + EMBEDDED_dailyFunnel.length + ' days', 'live');
-  } else if (cfg && cfg.REDASH_USER_API_KEY) {
-    F.setStatus('Failed to load live data \u00B7 Using snapshot', 'error');
-  } else {
-    F.setStatus('Snapshot data \u00B7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
-  }
+  // Register refresh handler for the Refresh button
+  window.SPEAKX._refreshFn = fetchAndRender;
 })();
 </script>
 </body>

@@ -238,42 +238,47 @@ function renderDashboard(filters) {
     var cfg = window.SPEAKX.CONFIG;
     var liveCount = 0;
 
-    F.setStatus('Loading live data...', 'loading');
-
     /** Convert ISO date "2026-02-03" to "Feb 3" */
     function isoToShort(iso) {
         var d = new Date(iso + 'T00:00:00');
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
-    // ── Green cohort weekly trend (maps to EMBEDDED_gt) ──
-    try {
-      var live = await DL.fetchSQL('cohort_green_weekly');
-      if (live && live.length) {
-        EMBEDDED_gt = live.map(function(r) {
-            return { w: isoToShort(r.w), t: r.t, g: r.g, gp: parseFloat(r.gp), pd: parseFloat(r.pd), dl: parseFloat(r.dl) };
-        });
-        liveCount++;
+    /** Fetch live data, update EMBEDDED vars, re-render, set status */
+    async function fetchAndRender() {
+      var count = 0;
+      F.setStatus('Loading live data...', 'loading');
+      try {
+        var live = await DL.fetchSQL('cohort_green_weekly');
+        if (live && live.length) {
+          EMBEDDED_gt = live.map(function(r) {
+              return { w: isoToShort(r.w), t: r.t, g: r.g, gp: parseFloat(r.gp), pd: parseFloat(r.pd), dl: parseFloat(r.dl) };
+          });
+          count++;
+        }
+      } catch (err) {
+        console.warn('[COHORT] Error loading live data:', err.message);
       }
-    } catch (err) {
-      console.warn('[COHORT] Error loading live data:', err.message);
+      renderDashboard(F.getState());
+      if (count > 0) {
+          F.setStatus('Live data from Redash \xB7 Green Cohort Trend \xB7 Other charts use snapshot', 'live');
+      } else if (cfg && cfg.REDASH_USER_API_KEY) {
+          F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
+      } else {
+          F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
+      }
     }
 
-    // Initialize filters
+    // Initialize filters first (creates status element needed by fetchAndRender)
     F.init('filters', [
         { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 120 }
     ], function(state) { renderDashboard(state); });
 
-    renderDashboard(F.getState());
+    // Fetch live data and render
+    await fetchAndRender();
 
-    // Set accurate status
-    if (liveCount > 0) {
-        F.setStatus('Live data from Redash \xB7 Green Cohort Trend \xB7 Other charts use snapshot', 'live');
-    } else if (cfg && cfg.REDASH_USER_API_KEY) {
-        F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
-    } else {
-        F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
-    }
+    // Register refresh handler for the Refresh button
+    window.SPEAKX._refreshFn = fetchAndRender;
 })();
 </script>
 </body>

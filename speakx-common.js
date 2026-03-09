@@ -306,9 +306,15 @@ window.SPEAKX.Filters = {
     refreshBtn.title = 'Refresh data from Redash';
     refreshBtn.textContent = '\u21BB Refresh';
     refreshBtn.addEventListener('click', () => {
-      window.SPEAKX.DataLoader._cache = {};
-      this._fireChange();
+      window.SPEAKX.DataLoader.clearCache();
       this.setStatus('Refreshing data...', 'loading');
+      // If dashboard registered an async refresh handler, use it;
+      // otherwise just re-render with existing in-memory data.
+      if (typeof window.SPEAKX._refreshFn === 'function') {
+        window.SPEAKX._refreshFn();
+      } else {
+        this._fireChange();
+      }
     });
     actGroup.appendChild(refreshBtn);
     bar.appendChild(actGroup);

@@ -294,22 +294,32 @@ function renderDashboard(filters) {
     var cfg = window.SPEAKX.CONFIG;
     var liveCount = 0;
 
-    F.setStatus('Loading live data...', 'loading');
-
-    // Load all 4 datasets in parallel
-    try {
-      var data = await DL.fetchAllSQL([
-        'mkt_daily_channel', 'mkt_revenue_daily', 'mkt_weekly_channel', 'mkt_lang_data'
-      ]);
-      if (data.mkt_daily_channel && data.mkt_daily_channel.length) { EMBEDDED_dailyChannel = data.mkt_daily_channel; liveCount++; }
-      if (data.mkt_revenue_daily && data.mkt_revenue_daily.length) { EMBEDDED_revenueDaily = data.mkt_revenue_daily; liveCount++; }
-      if (data.mkt_weekly_channel && data.mkt_weekly_channel.length) { EMBEDDED_weeklyChannel = data.mkt_weekly_channel; liveCount++; }
-      if (data.mkt_lang_data && data.mkt_lang_data.length) { EMBEDDED_langData = data.mkt_lang_data; liveCount++; }
-    } catch (err) {
-      console.warn('[MKT] Error loading live data:', err.message);
+    /** Fetch live data, update EMBEDDED vars, re-render, set status */
+    async function fetchAndRender() {
+      var count = 0;
+      F.setStatus('Loading live data...', 'loading');
+      try {
+        var data = await DL.fetchAllSQL([
+          'mkt_daily_channel', 'mkt_revenue_daily', 'mkt_weekly_channel', 'mkt_lang_data'
+        ]);
+        if (data.mkt_daily_channel && data.mkt_daily_channel.length) { EMBEDDED_dailyChannel = data.mkt_daily_channel; count++; }
+        if (data.mkt_revenue_daily && data.mkt_revenue_daily.length) { EMBEDDED_revenueDaily = data.mkt_revenue_daily; count++; }
+        if (data.mkt_weekly_channel && data.mkt_weekly_channel.length) { EMBEDDED_weeklyChannel = data.mkt_weekly_channel; count++; }
+        if (data.mkt_lang_data && data.mkt_lang_data.length) { EMBEDDED_langData = data.mkt_lang_data; count++; }
+      } catch (err) {
+        console.warn('[MKT] Error loading live data:', err.message);
+      }
+      renderDashboard(F.getState());
+      if (count > 0) {
+          F.setStatus('Live data from Redash \xB7 ' + count + '/4 datasets', 'live');
+      } else if (cfg && cfg.REDASH_USER_API_KEY) {
+          F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
+      } else {
+          F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
+      }
     }
 
-    // Initialize filters
+    // Initialize filters first (creates status element needed by fetchAndRender)
     F.init('filters', [
         { type: 'dateRange', key: 'dateRange', label: 'Date Range', defaultDays: 30 },
         { type: 'select', key: 'channel', label: 'Channel', options: [
@@ -321,16 +331,11 @@ function renderDashboard(filters) {
         ]}
     ], function(state) { renderDashboard(state); });
 
-    renderDashboard(F.getState());
+    // Fetch live data and render
+    await fetchAndRender();
 
-    // Set accurate status
-    if (liveCount > 0) {
-        F.setStatus('Live data from Redash \xB7 ' + liveCount + '/4 datasets', 'live');
-    } else if (cfg && cfg.REDASH_USER_API_KEY) {
-        F.setStatus('Failed to load live data \xB7 Using snapshot', 'error');
-    } else {
-        F.setStatus('Snapshot data \xB7 Set REDASH_USER_API_KEY in config.js for live data', 'snapshot');
-    }
+    // Register refresh handler for the Refresh button
+    window.SPEAKX._refreshFn = fetchAndRender;
 })();
 </script>
 </body>
