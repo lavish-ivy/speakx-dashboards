@@ -176,15 +176,34 @@
 }
 
 /* Blur mode — hides sensitive numbers when body has this class */
+/* KPI values (all dashboard variants) */
 body.spx-blur-active .kpi .value,
 body.spx-blur-active .kpi .val,
 body.spx-blur-active .kpi .v,
 body.spx-blur-active .kpi-v,
+/* KPI deltas / change indicators */
 body.spx-blur-active .kpi .delta,
 body.spx-blur-active .kpi .d,
 body.spx-blur-active .kpi-c,
-body.spx-blur-active .dt tbody td,
+/* All table data cells (generic + .dt) */
+body.spx-blur-active table td,
+/* Badges & tags */
 body.spx-blur-active .badge,
+body.spx-blur-active .tag,
+body.spx-blur-active .ib,
+body.spx-blur-active .b-green,
+body.spx-blur-active .b-red,
+body.spx-blur-active .badge-high,
+body.spx-blur-active .badge-med,
+body.spx-blur-active .badge-low,
+/* D0 funnel bar text */
+body.spx-blur-active .funnel-bar .bar-text,
+/* AB experiment winner/loser highlights */
+body.spx-blur-active .winner,
+body.spx-blur-active .loser,
+/* Cohort insight paragraphs (contain numbers) */
+body.spx-blur-active .insight p,
+/* All charts */
 body.spx-blur-active canvas {
   filter: blur(6px);
   -webkit-filter: blur(6px);
@@ -192,14 +211,18 @@ body.spx-blur-active canvas {
   -webkit-user-select: none;
   pointer-events: none;
 }
+/* Labels & headings that should stay readable */
 body.spx-blur-active .kpi .label,
 body.spx-blur-active .kpi .lbl,
 body.spx-blur-active .kpi .l,
 body.spx-blur-active .kpi-l,
-body.spx-blur-active .dt thead th,
+body.spx-blur-active table thead th,
 body.spx-blur-active .sec,
 body.spx-blur-active .cc h3,
-body.spx-blur-active .cc .cs {
+body.spx-blur-active .cc .cs,
+body.spx-blur-active .card h3,
+body.spx-blur-active .insight h3,
+body.spx-blur-active .funnel-bar .step-name {
   filter: none;
 }
 
